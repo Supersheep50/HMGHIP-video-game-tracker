@@ -4,18 +4,14 @@ using PlayedGames.Components;
 
 namespace PlayedGames.Modals
 {
-    public class Element
+    public class Games
     {
 
         public string Name { get; set; }
-        public string Molar { get; set; }
+        public string Platform { get; set; }
 
-        public int Number { get; set; }
-        public string Sign { get; set; }
-        public int Position { get; set; }
+        public string Genre { get; set; }
+        public string Developer { get; set; }
 
-        public double MolarMass { get; set; }
-
-        public int Nr { get; set; }
     }
 }
