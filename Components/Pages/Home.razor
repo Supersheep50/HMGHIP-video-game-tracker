@@ -1,118 +1,198 @@
-﻿@page "/"
-@using MudBlazor
-@using MudBlazor.Services
-@using System.Net.Http.Json
-@using PlayedGames.Modals
+@page "/"
+@rendermode InteractiveServer
+@inject PlayedGames.Services.RawgService RawgService
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Game Library</PageTitle>
 
-<MudText Typo="Typo.h2"> Jon's Played Games! </MudText>
-
-<MudDataGrid T="Games" MultiSelection="true" Items="@GamesList" SortMode="SortMode.Multiple" Filterable="true" QuickFilter="@_quickFilter"
-    Hideable="true" RowClick="@RowClicked" RowContextMenuClick="RowRightClicked" SelectedItemsChanged="@SelectedItemsChanged">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">List of Completed Games</MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-    </ToolBarContent>
-    <Columns>
-        <SelectColumn T="Games" />
-    
-
-        <PropertyColumn Property="x => x.Name" SortBy="@_sortBy" />
-        <PropertyColumn Property="x => x.Genre" />
-        <PropertyColumn Property="x => x.Platform" Title="Platform" />
-        <PropertyColumn Property="x => x.Developer" Title="Developer" />
-
-        @* <PropertyColumn Property="x => x.Group" Title="Category" /> *@
-    </Columns>
-    <PagerContent>
-        <MudDataGridPager T="Games" />
-    </PagerContent>
-</MudDataGrid>
-<MudExpansionPanels Style="flex:1">
-    <MudExpansionPanel Text="Show Events">
-        @foreach (var message in _events)
-        {
-            <MudText Typo="@Typo.body2">@message</MudText>
-        }
-        @if(_events.Count > 0) 
-        {
-            <div class="d-flex">
-                <MudSpacer/>
-                <MudButton Class="mt-3" ButtonType="ButtonType.Button" Variant="Variant.Filled" OnClick="@(() => _events.Clear())">Clear</MudButton>
+<div class="hero-header">
+    <div class="hero-inner">
+        <div class="hero-title-section">
+            <p class="hero-title">Game Library</p>
+            <p class="hero-subtitle">Your personal gaming journal</p>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-card">
+                <span class="stat-number">@GamesList.Count</span>
+                <span class="stat-label">Games</span>
             </div>
-        }
-    </MudExpansionPanel>
-</MudExpansionPanels>
+            <div class="stat-card">
+                <span class="stat-number">@GamesList.Sum(g => g.HoursPlayed).ToString("N0")</span>
+                <span class="stat-label">Hours</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">@(GamesList.Any() ? GamesList.Average(g => g.Review).ToString("F1") : "—")</span>
+                <span class="stat-label">Avg Score</span>
+            </div>
+        </div>
+    </div>
+</div>
 
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
+
+    <div class="filter-row">
+        <MudTextField @bind-Value="_searchString"
+                      Placeholder="Search games, genres, platforms..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Class="search-input"
+                      Immediate="true" />
+        <div class="genre-chips">
+            <MudChip T="string"
+                     Color="@(_activeGenre == "All" ? Color.Primary : Color.Default)"
+                     Variant="@(_activeGenre == "All" ? Variant.Filled : Variant.Outlined)"
+                     OnClick='@(() => _activeGenre = "All")'
+                     Class="genre-chip">All</MudChip>
+            @foreach (var genre in AllGenres)
+            {
+                var g = genre;
+                <MudChip T="string"
+                         Color="@(_activeGenre == g ? Color.Primary : Color.Default)"
+                         Variant="@(_activeGenre == g ? Variant.Filled : Variant.Outlined)"
+                         OnClick="@(() => _activeGenre = g)"
+                         Class="genre-chip">@g</MudChip>
+            }
+        </div>
+    </div>
+
+    <MudText Typo="Typo.body2" Class="results-count">
+        Showing @FilteredGames.Count() of @GamesList.Count games
+    </MudText>
+
+    <MudGrid Spacing="3">
+        @foreach (var game in FilteredGames)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Class="game-card" Elevation="0">
+                    <div class="card-art @(game.GameArtUrl == null ? "card-art-loading" : "")"
+                         style="background: @GetGenreGradient(game.Genre)">
+                        @if (!string.IsNullOrEmpty(game.GameArtUrl))
+                        {
+                            <img src="@game.GameArtUrl" class="card-art-img" alt="@game.Name" />
+                        }
+                        else
+                        {
+                            <div class="card-art-icon">
+                                <MudIcon Icon="@GetGenreIcon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                            </div>
+                        }
+                        <div class="rating-badge @GetRatingClass(game.Review)">
+                            @game.Review<span class="rating-sub">/10</span>
+                        </div>
+                    </div>
+                    <MudCardContent Class="card-body">
+                        <p class="game-name">@game.Name</p>
+                        <p class="game-developer">@game.Developer</p>
+                        <div class="card-tags">
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="tag-chip">@game.System</MudChip>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@game.Genre</MudChip>
+                        </div>
+                        <div class="card-footer-row">
+                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="hours-icon" />
+                            <span class="hours-text">@game.HoursPlayed hrs played</span>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    @if (!FilteredGames.Any())
+    {
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 4rem; opacity: 0.3;" />
+            <MudText Typo="Typo.h6" Class="mt-3">No games found</MudText>
+            <MudText Typo="Typo.body2">Try adjusting your search or filters</MudText>
+        </div>
+    }
+
+</MudContainer>
 
 @code {
-    private IEnumerable<Games> GamesList = new List<Games>();
-    private string _searchString;
-    private bool _sortNameByLength;
-    private List<string> _events = new();
-    // custom sort by name length
-    private Func<Games, object> _sortBy => x =>
+    private string _searchString = "";
+    private string _activeGenre = "All";
+
+    private readonly List<Games> GamesList = new()
     {
-        if (_sortNameByLength)
-            return x.Name.Length;
-        else
-            return x.Name;
+        new Games { Name = "Elden Ring",                  Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",        HoursPlayed = 95,  Review = 10 },
+        new Games { Name = "The Witcher 3: Wild Hunt",    Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",      HoursPlayed = 180, Review = 10 },
+        new Games { Name = "God of War",                  Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Santa Monica Studio", HoursPlayed = 75,  Review = 10 },
+        new Games { Name = "Red Dead Redemption 2",       Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Rockstar Games",      HoursPlayed = 110, Review = 9  },
+        new Games { Name = "Hollow Knight",               Genre = "Metroidvania",     System = "PC",              Developer = "Team Cherry",         HoursPlayed = 45,  Review = 9  },
+        new Games { Name = "Hades",                       Genre = "Roguelike",        System = "PC",              Developer = "Supergiant Games",    HoursPlayed = 55,  Review = 9  },
+        new Games { Name = "Persona 5 Royal",             Genre = "JRPG",             System = "PlayStation 4",   Developer = "Atlus",               HoursPlayed = 120, Review = 10 },
+        new Games { Name = "Breath of the Wild",          Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",            HoursPlayed = 150, Review = 10 },
+        new Games { Name = "Disco Elysium",               Genre = "RPG",              System = "PC",              Developer = "ZA/UM",               HoursPlayed = 38,  Review = 9  },
+        new Games { Name = "Monster Hunter World",        Genre = "Action RPG",       System = "PC",              Developer = "Capcom",              HoursPlayed = 200, Review = 9  },
+        new Games { Name = "Dark Souls III",              Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",        HoursPlayed = 80,  Review = 8  },
+        new Games { Name = "Cyberpunk 2077",              Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",      HoursPlayed = 85,  Review = 8  },
+        new Games { Name = "Final Fantasy XIV",           Genre = "MMORPG",           System = "PC",              Developer = "Square Enix",         HoursPlayed = 300, Review = 9  },
+        new Games { Name = "Sekiro: Shadows Die Twice",   Genre = "Action",           System = "PC",              Developer = "FromSoftware",        HoursPlayed = 65,  Review = 8  },
+        new Games { Name = "Stardew Valley",              Genre = "Simulation",       System = "PC",              Developer = "ConcernedApe",        HoursPlayed = 130, Review = 8  },
+        new Games { Name = "Death Stranding",             Genre = "Action",           System = "PC",              Developer = "Kojima Productions",  HoursPlayed = 55,  Review = 7  },
+        new Games { Name = "Control",                     Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",HoursPlayed = 25,  Review = 8  },
+        new Games { Name = "Divinity: Original Sin 2",   Genre = "RPG",              System = "PC",              Developer = "Larian Studios",      HoursPlayed = 160, Review = 10 },
+        new Games { Name = "Marvel's Spider-Man",         Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Insomniac Games",     HoursPlayed = 30,  Review = 9  },
+        new Games { Name = "Mass Effect 2",               Genre = "RPG",              System = "PC",              Developer = "BioWare",             HoursPlayed = 42,  Review = 10 },
     };
-    // quick filter - filter globally across multiple columns with the same input
-    private Func<Games, bool> _quickFilter => x =>
-    {
-        if (string.IsNullOrWhiteSpace(_searchString))
-            return true;
-
-        if (x.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        if ($"{x.Name} {x.Genre} {x.Developer}".Contains(_searchString))
-            return true;
-
-        return false;
-    };
-    // events
-    void RowClicked(DataGridRowClickEventArgs<Games> args)
-    {
-        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
-    }
-    
-    void RowRightClicked(DataGridRowClickEventArgs<Games> args)
-    {
-        _events.Insert(0, $"Event = RowRightClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
-    }
-
-    void SelectedItemsChanged(HashSet<Games> items)
-    {
-        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
-    }
 
     protected override async Task OnInitializedAsync()
     {
-       // Instead of fetching from API
-    GamesList = new List<Games>
-    {
-        new Games { Name = "Skyrim", Developer ="Bethesda", Genre ="RPG", Platform ="PlayStation, PC, Xbox"},
-        new Games { Name = "Divintiy Original Sin", Developer ="Larian", Genre ="RPG", Platform ="PlayStation, PC, Xbox"},
-        new Games { Name = "Skyrim", Developer ="Bethesda", Genre ="RPG", Platform ="PlayStation, PC, Xbox"},
-        new Games { Name = "Skyrim", Developer ="Bethesda", Genre ="RPG", Platform ="PlayStation, PC, Xbox"},
+        var tasks = GamesList.Select(async game =>
+        {
+            game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
 
-      
+    private IEnumerable<string> AllGenres =>
+        GamesList.Select(g => g.Genre ?? "").Distinct().OrderBy(g => g);
+
+    private IEnumerable<Games> FilteredGames =>
+        GamesList.Where(g =>
+            (_activeGenre == "All" || g.Genre == _activeGenre) &&
+            (string.IsNullOrWhiteSpace(_searchString) ||
+             (g.Name?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+             (g.Genre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+             (g.System?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+             (g.Developer?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false))
+        ).OrderByDescending(g => g.Review).ThenBy(g => g.Name);
+
+    private string GetRatingClass(int r) => r switch
+    {
+        >= 9 => "rating-excellent",
+        >= 7 => "rating-good",
+        >= 5 => "rating-average",
+        _    => "rating-poor"
+    };
+
+    private string GetGenreGradient(string? genre) => genre switch
+    {
+        "Action RPG"       => "linear-gradient(145deg, #1e0a3c 0%, #6b21a8 100%)",
+        "RPG"              => "linear-gradient(145deg, #0d1b4b 0%, #1d4ed8 100%)",
+        "Action-Adventure" => "linear-gradient(145deg, #1c0505 0%, #991b1b 100%)",
+        "JRPG"             => "linear-gradient(145deg, #3b0000 0%, #dc2626 100%)",
+        "Roguelike"        => "linear-gradient(145deg, #0a0a1a 0%, #4338ca 100%)",
+        "Metroidvania"     => "linear-gradient(145deg, #000d10 0%, #0e7490 100%)",
+        "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
+        "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
+        "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
+        _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
+    };
+
+    private string GetGenreIcon(string? genre) => genre switch
+    {
+        "Action RPG"       => Icons.Material.Filled.AutoFixHigh,
+        "RPG"              => Icons.Material.Filled.AutoAwesome,
+        "Action-Adventure" => Icons.Material.Filled.Explore,
+        "JRPG"             => Icons.Material.Filled.Stars,
+        "Roguelike"        => Icons.Material.Filled.Loop,
+        "Metroidvania"     => Icons.Material.Filled.Terrain,
+        "Simulation"       => Icons.Material.Filled.Yard,
+        "MMORPG"           => Icons.Material.Filled.Groups,
+        "Action"           => Icons.Material.Filled.FlashOn,
+        _                  => Icons.Material.Filled.SportsEsports,
     };
 }
-
-
-private void AddGame(){
-
-    // code to add game to dashboard is next step
-}
-
-
-}
-
-
-

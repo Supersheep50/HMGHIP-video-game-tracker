@@ -1,5 +1,6 @@
 using PlayedGames.Components;
 using PlayedGames.Modals;
+using PlayedGames.Services;
 using MudBlazor.Services;
 
 
@@ -11,6 +12,7 @@ builder.Services.AddRazorComponents()
 
 
 builder.Services.AddMudServices();
+builder.Services.AddHttpClient<RawgService>();
 
 
 var app = builder.Build();
