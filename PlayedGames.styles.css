@@ -1,0 +1,285 @@
+/* /Components/Layout/MainLayout.razor.rz.scp.css */
+.page[b-mk8lj30a9p] {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+main[b-mk8lj30a9p] {
+    flex: 1;
+}
+
+.sidebar[b-mk8lj30a9p] {
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+}
+
+.top-row[b-mk8lj30a9p] {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #d6d5d5;
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+}
+
+    .top-row[b-mk8lj30a9p]  a, .top-row[b-mk8lj30a9p]  .btn-link {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+        text-decoration: none;
+    }
+
+    .top-row[b-mk8lj30a9p]  a:hover, .top-row[b-mk8lj30a9p]  .btn-link:hover {
+        text-decoration: underline;
+    }
+
+    .top-row[b-mk8lj30a9p]  a:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+@media (max-width: 640.98px) {
+    .top-row[b-mk8lj30a9p] {
+        justify-content: space-between;
+    }
+
+    .top-row[b-mk8lj30a9p]  a, .top-row[b-mk8lj30a9p]  .btn-link {
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 641px) {
+    .page[b-mk8lj30a9p] {
+        flex-direction: row;
+    }
+
+    .sidebar[b-mk8lj30a9p] {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row[b-mk8lj30a9p] {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .top-row.auth[b-mk8lj30a9p]  a:first-child {
+        flex: 1;
+        text-align: right;
+        width: 0;
+    }
+
+    .top-row[b-mk8lj30a9p], article[b-mk8lj30a9p] {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+
+#blazor-error-ui[b-mk8lj30a9p] {
+    color-scheme: light only;
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss[b-mk8lj30a9p] {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+/* /Components/Layout/NavMenu.razor.rz.scp.css */
+/* =========================================
+   App Header
+   ========================================= */
+.app-header[b-7j01r0qi0u] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    height: 56px;
+    background: rgba(13, 17, 23, 0.92);
+    border-bottom: 1px solid #30363d;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.header-inner[b-7j01r0qi0u] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 0 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Brand */
+.brand-link[b-7j01r0qi0u] {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: #e6edf3;
+}
+
+.brand-icon[b-7j01r0qi0u] {
+    width: 28px;
+    height: 28px;
+    color: #a78bfa;
+    flex-shrink: 0;
+}
+
+.brand-name[b-7j01r0qi0u] {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Hamburger button */
+.menu-toggle[b-7j01r0qi0u] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: #e6edf3;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.menu-toggle:hover[b-7j01r0qi0u] {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: #7c3aed;
+}
+
+.menu-toggle svg[b-7j01r0qi0u] {
+    width: 22px;
+    height: 22px;
+}
+
+/* =========================================
+   Backdrop
+   ========================================= */
+.menu-backdrop[b-7j01r0qi0u] {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    animation: fadeIn-b-7j01r0qi0u 0.18s ease;
+}
+
+@keyframes fadeIn-b-7j01r0qi0u {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* =========================================
+   Side Drawer
+   ========================================= */
+.side-drawer[b-7j01r0qi0u] {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 120;
+    background: #161b22;
+    border-left: 1px solid #30363d;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
+    animation: slideIn-b-7j01r0qi0u 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes slideIn-b-7j01r0qi0u {
+    from { transform: translateX(100%); opacity: 0.5; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+
+.drawer-header[b-7j01r0qi0u] {
+    padding: 1.25rem 1.25rem 0.75rem;
+    border-bottom: 1px solid #30363d;
+}
+
+.drawer-title[b-7j01r0qi0u] {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8b949e;
+}
+
+/* Drawer list */
+.drawer-list[b-7j01r0qi0u] {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    flex: 1;
+}
+
+.drawer-list li[b-7j01r0qi0u] {
+    padding: 0 0.5rem;
+}
+
+.drawer-link[b-7j01r0qi0u] {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: 8px;
+    color: #c9d1d9;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.12s, color 0.12s;
+    cursor: pointer;
+}
+
+.drawer-link:hover[b-7j01r0qi0u],
+.drawer-link:active[b-7j01r0qi0u] {
+    background: rgba(124, 58, 237, 0.12);
+    color: #a78bfa;
+}
+
+.drawer-link svg[b-7j01r0qi0u] {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    opacity: 0.75;
+}
+
+.drawer-link-danger[b-7j01r0qi0u] {
+    color: #f87171;
+}
+
+.drawer-link-danger:hover[b-7j01r0qi0u] {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+}
+
+.drawer-divider[b-7j01r0qi0u] {
+    height: 1px;
+    background: #30363d;
+    margin: 0.5rem 0.5rem;
+    padding: 0 !important;
+}
