@@ -22,21 +22,138 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="HMGHIP" />
+
+    <style>
+        #boot-screen {
+            position: fixed;
+            inset: 0;
+            background: #0d1117;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            z-index: 9999;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .boot-icon {
+            animation: bootPulse 1.6s ease-in-out infinite;
+            margin-bottom: 1.5rem;
+        }
+        @keyframes bootPulse {
+            0%, 100% { opacity: 1;   transform: scale(1); }
+            50%       { opacity: 0.6; transform: scale(0.94); }
+        }
+        .boot-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.25rem;
+        }
+        .boot-sub {
+            font-size: 0.7rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #4b5563;
+            margin-bottom: 2.5rem;
+        }
+        .boot-bar-wrap {
+            width: min(300px, 72vw);
+            height: 10px;
+            border: 1px solid #30363d;
+            border-radius: 2px;
+            background: #0d0f1a;
+            overflow: hidden;
+            box-shadow: 0 0 14px rgba(124,58,237,0.25);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        .boot-bar-fill {
+            height: 100%;
+            width: 0%;
+            /* Segmented pixel-bar look */
+            background: repeating-linear-gradient(
+                90deg,
+                #7c3aed 0px, #a78bfa 6px,
+                #6d28d9 7px, #6d28d9 11px
+            );
+            box-shadow: 0 0 10px rgba(167,139,250,0.7);
+            animation: bootBar 3.8s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+            border-radius: 1px;
+        }
+        @keyframes bootBar {
+            0%   { width: 0%; }
+            15%  { width: 22%; }
+            35%  { width: 48%; }
+            55%  { width: 66%; }
+            72%  { width: 80%; }
+            88%  { width: 91%; }
+            100% { width: 97%; }
+        }
+        .boot-msg {
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            color: #6b7280;
+            text-transform: uppercase;
+            min-height: 1.1em;
+            transition: opacity 0.3s;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
-        <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0d1117;flex-direction:column;gap:1rem;">
-            <svg width="52" height="52" viewBox="0 0 24 24" fill="#a78bfa" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5S14.67 12 15.5 12s1.5.67 1.5 1.5S16.33 15 15.5 15zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5S19.33 12 18.5 12z"/>
-            </svg>
-            <p style="color:#8b949e;font-family:system-ui,sans-serif;font-size:0.9rem;margin:0;">Loading HMGHIP...</p>
+        <div id="boot-screen">
+            <div class="boot-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="#a78bfa" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5S14.67 12 15.5 12s1.5.67 1.5 1.5S16.33 15 15.5 15zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5S19.33 12 18.5 12z"/>
+                </svg>
+            </div>
+            <div class="boot-title">HMGHIP</div>
+            <div class="boot-sub">How Many Games Have I Played</div>
+            <div class="boot-bar-wrap">
+                <div class="boot-bar-fill"></div>
+            </div>
+            <div class="boot-msg" id="boot-msg">Initializing...</div>
         </div>
     </div>
+
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
+
+    <script>
+        const msgs = [
+            'Initializing save data...',
+            'Loading game library...',
+            'Fetching achievements...',
+            'Buffering open worlds...',
+            'Defeating final bosses...',
+            'Respawning at checkpoint...',
+            'Syncing cloud saves...',
+            'Unlocking trophies...',
+            'Almost ready...'
+        ];
+        let mi = 0;
+        const msgEl = document.getElementById('boot-msg');
+        const msgInterval = setInterval(() => {
+            mi = (mi + 1) % msgs.length;
+            msgEl.style.opacity = '0';
+            setTimeout(() => {
+                msgEl.textContent = msgs[mi];
+                msgEl.style.opacity = '1';
+            }, 150);
+        }, 900);
+
+        // Clean up when Blazor is ready
+        window._bootCleanup = () => clearInterval(msgInterval);
+    </script>
+
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
