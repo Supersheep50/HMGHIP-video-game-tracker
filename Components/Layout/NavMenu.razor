@@ -70,12 +70,12 @@
     private async Task ToggleMenu()
     {
         _open = !_open;
-        await JS.InvokeVoidAsync("haptic", _open ? 40 : 20);
+        try { await JS.InvokeVoidAsync("haptic", _open ? 40 : 20); } catch { }
     }
 
     private async Task Close()
     {
         _open = false;
-        await JS.InvokeVoidAsync("haptic", 15);
+        try { await JS.InvokeVoidAsync("haptic", 15); } catch { }
     }
 }
