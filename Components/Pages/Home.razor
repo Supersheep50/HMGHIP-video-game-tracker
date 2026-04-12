@@ -1,14 +1,33 @@
 @page "/"
-@rendermode InteractiveServer
 @inject PlayedGames.Services.RawgService RawgService
 
-<PageTitle>Game Library</PageTitle>
+<PageTitle>HMGHIP — Games Played 2026</PageTitle>
 
 <div class="hero-header">
+    <!-- Scrolling carousel background — quad-duplicated so 5 tiles fills the track -->
+    <div class="hero-carousel" aria-hidden="true">
+        <div class="carousel-track">
+            @for (int copy = 0; copy < 4; copy++)
+            {
+                @foreach (var game in GamesList)
+                {
+                    <div class="carousel-tile" style="background: @GetGenreGradient(game.Genre)">
+                        @if (!string.IsNullOrEmpty(game.GameArtUrl))
+                        {
+                            <img src="@game.GameArtUrl" alt="" class="carousel-img" />
+                        }
+                    </div>
+                }
+            }
+        </div>
+        <div class="hero-overlay"></div>
+    </div>
+
     <div class="hero-inner">
         <div class="hero-title-section">
-            <p class="hero-title">Game Library</p>
-            <p class="hero-subtitle">Your personal gaming journal</p>
+            <div class="year-badge">2026</div>
+            <p class="hero-title">Games Played</p>
+            <p class="hero-subtitle">A running diary of every game played this year</p>
         </div>
         <div class="hero-stats">
             <div class="stat-card">
@@ -29,39 +48,8 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
 
-    <div class="filter-row">
-        <MudTextField @bind-Value="_searchString"
-                      Placeholder="Search games, genres, platforms..."
-                      Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      Variant="Variant.Outlined"
-                      Margin="Margin.Dense"
-                      Class="search-input"
-                      Immediate="true" />
-        <div class="genre-chips">
-            <MudChip T="string"
-                     Color="@(_activeGenre == "All" ? Color.Primary : Color.Default)"
-                     Variant="@(_activeGenre == "All" ? Variant.Filled : Variant.Outlined)"
-                     OnClick='@(() => _activeGenre = "All")'
-                     Class="genre-chip">All</MudChip>
-            @foreach (var genre in AllGenres)
-            {
-                var g = genre;
-                <MudChip T="string"
-                         Color="@(_activeGenre == g ? Color.Primary : Color.Default)"
-                         Variant="@(_activeGenre == g ? Variant.Filled : Variant.Outlined)"
-                         OnClick="@(() => _activeGenre = g)"
-                         Class="genre-chip">@g</MudChip>
-            }
-        </div>
-    </div>
-
-    <MudText Typo="Typo.body2" Class="results-count">
-        Showing @FilteredGames.Count() of @GamesList.Count games
-    </MudText>
-
     <MudGrid Spacing="3">
-        @foreach (var game in FilteredGames)
+        @foreach (var game in GamesList)
         {
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <MudCard Class="game-card" Elevation="0">
@@ -98,43 +86,16 @@
         }
     </MudGrid>
 
-    @if (!FilteredGames.Any())
-    {
-        <div class="empty-state">
-            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 4rem; opacity: 0.3;" />
-            <MudText Typo="Typo.h6" Class="mt-3">No games found</MudText>
-            <MudText Typo="Typo.body2">Try adjusting your search or filters</MudText>
-        </div>
-    }
-
 </MudContainer>
 
 @code {
-    private string _searchString = "";
-    private string _activeGenre = "All";
-
     private readonly List<Games> GamesList = new()
     {
-        new Games { Name = "Elden Ring",                  Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",        HoursPlayed = 95,  Review = 10 },
-        new Games { Name = "The Witcher 3: Wild Hunt",    Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",      HoursPlayed = 180, Review = 10 },
-        new Games { Name = "God of War",                  Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Santa Monica Studio", HoursPlayed = 75,  Review = 10 },
-        new Games { Name = "Red Dead Redemption 2",       Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Rockstar Games",      HoursPlayed = 110, Review = 9  },
-        new Games { Name = "Hollow Knight",               Genre = "Metroidvania",     System = "PC",              Developer = "Team Cherry",         HoursPlayed = 45,  Review = 9  },
-        new Games { Name = "Hades",                       Genre = "Roguelike",        System = "PC",              Developer = "Supergiant Games",    HoursPlayed = 55,  Review = 9  },
-        new Games { Name = "Persona 5 Royal",             Genre = "JRPG",             System = "PlayStation 4",   Developer = "Atlus",               HoursPlayed = 120, Review = 10 },
-        new Games { Name = "Breath of the Wild",          Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",            HoursPlayed = 150, Review = 10 },
-        new Games { Name = "Disco Elysium",               Genre = "RPG",              System = "PC",              Developer = "ZA/UM",               HoursPlayed = 38,  Review = 9  },
-        new Games { Name = "Monster Hunter World",        Genre = "Action RPG",       System = "PC",              Developer = "Capcom",              HoursPlayed = 200, Review = 9  },
-        new Games { Name = "Dark Souls III",              Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",        HoursPlayed = 80,  Review = 8  },
-        new Games { Name = "Cyberpunk 2077",              Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",      HoursPlayed = 85,  Review = 8  },
-        new Games { Name = "Final Fantasy XIV",           Genre = "MMORPG",           System = "PC",              Developer = "Square Enix",         HoursPlayed = 300, Review = 9  },
-        new Games { Name = "Sekiro: Shadows Die Twice",   Genre = "Action",           System = "PC",              Developer = "FromSoftware",        HoursPlayed = 65,  Review = 8  },
-        new Games { Name = "Stardew Valley",              Genre = "Simulation",       System = "PC",              Developer = "ConcernedApe",        HoursPlayed = 130, Review = 8  },
-        new Games { Name = "Death Stranding",             Genre = "Action",           System = "PC",              Developer = "Kojima Productions",  HoursPlayed = 55,  Review = 7  },
-        new Games { Name = "Control",                     Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",HoursPlayed = 25,  Review = 8  },
-        new Games { Name = "Divinity: Original Sin 2",   Genre = "RPG",              System = "PC",              Developer = "Larian Studios",      HoursPlayed = 160, Review = 10 },
-        new Games { Name = "Marvel's Spider-Man",         Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Insomniac Games",     HoursPlayed = 30,  Review = 9  },
-        new Games { Name = "Mass Effect 2",               Genre = "RPG",              System = "PC",              Developer = "BioWare",             HoursPlayed = 42,  Review = 10 },
+        new Games { Name = "Baldur's Gate 3",                        Genre = "RPG",              System = "PC",              Developer = "Larian Studios",      HoursPlayed = 120, Review = 10 },
+        new Games { Name = "Elden Ring",                             Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",        HoursPlayed = 95,  Review = 10 },
+        new Games { Name = "God of War: Ragnarök",                   Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Santa Monica Studio", HoursPlayed = 40,  Review = 10 },
+        new Games { Name = "Alan Wake 2",                            Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",HoursPlayed = 20,  Review = 9  },
+        new Games { Name = "The Legend of Zelda: Tears of the Kingdom", Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",         HoursPlayed = 120, Review = 10 },
     };
 
     protected override async Task OnInitializedAsync()
@@ -146,19 +107,6 @@
         });
         await Task.WhenAll(tasks);
     }
-
-    private IEnumerable<string> AllGenres =>
-        GamesList.Select(g => g.Genre ?? "").Distinct().OrderBy(g => g);
-
-    private IEnumerable<Games> FilteredGames =>
-        GamesList.Where(g =>
-            (_activeGenre == "All" || g.Genre == _activeGenre) &&
-            (string.IsNullOrWhiteSpace(_searchString) ||
-             (g.Name?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-             (g.Genre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-             (g.System?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-             (g.Developer?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false))
-        ).OrderByDescending(g => g.Review).ThenBy(g => g.Name);
 
     private string GetRatingClass(int r) => r switch
     {
@@ -179,6 +127,8 @@
         "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
         "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
         "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
+        "Platformer"       => "linear-gradient(145deg, #0a1a2a 0%, #0369a1 100%)",
+        "Racing"           => "linear-gradient(145deg, #1a0a00 0%, #d97706 100%)",
         _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
     };
 
@@ -193,6 +143,8 @@
         "Simulation"       => Icons.Material.Filled.Yard,
         "MMORPG"           => Icons.Material.Filled.Groups,
         "Action"           => Icons.Material.Filled.FlashOn,
+        "Platformer"       => Icons.Material.Filled.DirectionsRun,
+        "Racing"           => Icons.Material.Filled.Speed,
         _                  => Icons.Material.Filled.SportsEsports,
     };
 }

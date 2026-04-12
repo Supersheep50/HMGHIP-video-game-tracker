@@ -23,29 +23,98 @@ html, body {
 .app-shell {
     min-height: 100vh;
     background-color: var(--bg-primary);
+    padding-top: 56px; /* fixed header height */
 }
 
 /* =========================================
    Hero Header
    ========================================= */
 .hero-header {
-    background: linear-gradient(135deg, #0d0f1a 0%, #1a1040 60%, #0d1117 100%);
+    position: relative;
+    overflow: hidden;
     border-bottom: 1px solid var(--border);
-    padding: 2.5rem 2rem;
+    padding: 2rem 1.25rem 1.75rem;
+    background: #0d0f1a;
+}
+
+/* Carousel */
+.hero-carousel {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.carousel-track {
+    display: flex;
+    gap: 6px;
+    height: 100%;
+    width: max-content;
+    animation: carouselScroll 40s linear infinite;
+}
+
+@keyframes carouselScroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
+.carousel-tile {
+    width: 120px;
+    height: 100%;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+.carousel-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    opacity: 0.6;
+    transition: opacity 0.4s ease;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(13, 15, 26, 0.88) 0%,
+        rgba(26, 16, 64, 0.78) 50%,
+        rgba(13, 17, 23, 0.88) 100%
+    );
 }
 
 .hero-inner {
+    position: relative;
+    z-index: 1;
     max-width: 1400px;
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 2rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
 }
 
+.year-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.35);
+    border-radius: 20px;
+    padding: 0.2rem 0.65rem;
+    margin-bottom: 0.55rem;
+}
+
 .hero-title {
-    font-size: 2.2rem;
+    font-size: 2rem;
     font-weight: 700;
     margin: 0 0 0.25rem 0;
     background: linear-gradient(135deg, var(--accent-light), var(--accent));
@@ -58,7 +127,7 @@ html, body {
 .hero-subtitle {
     color: var(--text-muted);
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
 }
 
 .hero-stats {
@@ -92,6 +161,11 @@ html, body {
     margin-top: 0.35rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+}
+
+/* Library hero — no carousel, just gradient */
+.library-hero {
+    background: linear-gradient(135deg, #0d0f1a 0%, #1a1040 60%, #0d1117 100%) !important;
 }
 
 /* =========================================
@@ -329,12 +403,19 @@ html, body {
 @media (max-width: 600px) {
     .hero-inner {
         flex-direction: column;
-        text-align: center;
+        align-items: flex-start;
+        gap: 1rem;
     }
 
     .hero-stats {
-        justify-content: center;
         width: 100%;
+        justify-content: space-between;
+    }
+
+    .stat-card {
+        flex: 1;
+        min-width: unset;
+        padding: 0.75rem 0.5rem;
     }
 
     .search-input {
@@ -342,9 +423,208 @@ html, body {
     }
 
     .hero-title {
-        font-size: 1.7rem;
+        font-size: 1.65rem;
     }
 }
+
+/* =========================================
+   Stub Pages (About / Contact / Login / Logout)
+   ========================================= */
+.stub-page {
+    min-height: calc(100vh - 56px);
+    padding-bottom: 4rem;
+}
+
+.stub-hero {
+    background: linear-gradient(135deg, #0d0f1a 0%, #1a1040 60%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1.25rem 2rem;
+    text-align: center;
+}
+
+.stub-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.35);
+    border-radius: 14px;
+    margin: 0 auto 1rem;
+    color: var(--accent-light);
+}
+
+.stub-icon svg { width: 26px; height: 26px; }
+
+.stub-icon-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+.stub-title {
+    font-size: 1.85rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    background: linear-gradient(135deg, var(--accent-light), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stub-lead {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.stub-body {
+    max-width: 760px;
+    margin: 2rem auto 0;
+    padding: 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.stub-body-narrow {
+    max-width: 440px;
+}
+
+.stub-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+}
+
+.stub-card-center {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stub-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.85rem;
+}
+
+.stub-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin: 0 0 0.75rem;
+}
+
+.stub-card p:last-child { margin-bottom: 0; }
+
+.stub-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stub-list li {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding-left: 1rem;
+    position: relative;
+}
+
+.stub-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent-light);
+    font-size: 0.75rem;
+}
+
+/* Form stubs */
+.stub-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stub-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.stub-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.stub-input {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.stub-textarea {
+    min-height: 100px;
+    resize: none;
+    font-family: inherit;
+}
+
+.stub-coming-soon {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    background: rgba(124, 58, 237, 0.12);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    border-radius: 20px;
+    padding: 0.3rem 0.85rem;
+    text-align: center;
+}
+
+.stub-link {
+    color: var(--accent-light);
+    font-size: 0.85rem;
+    text-align: center;
+    text-decoration: none;
+}
+
+.stub-link:hover { text-decoration: underline; }
+
+.stub-btn-home {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.15s;
+}
+
+.stub-btn-home:hover { background: #6d28d9; }
 
 /* =========================================
    Blazor Error UI

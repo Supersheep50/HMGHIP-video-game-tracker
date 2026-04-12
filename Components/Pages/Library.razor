@@ -1,0 +1,214 @@
+@page "/library"
+@inject PlayedGames.Services.RawgService RawgService
+
+<PageTitle>Games Library — HMGHIP</PageTitle>
+
+<div class="hero-header library-hero">
+    <div class="hero-inner">
+        <div class="hero-title-section">
+            <div class="year-badge">All Time</div>
+            <p class="hero-title">Games Library</p>
+            <p class="hero-subtitle">Every game, every year — the complete record</p>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-card">
+                <span class="stat-number">@GamesList.Count</span>
+                <span class="stat-label">Games</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">@GamesList.Sum(g => g.HoursPlayed).ToString("N0")</span>
+                <span class="stat-label">Hours</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">@(GamesList.Any() ? GamesList.Average(g => g.Review).ToString("F1") : "—")</span>
+                <span class="stat-label">Avg Score</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
+
+    <div class="filter-row">
+        <MudTextField @bind-Value="_searchString"
+                      Placeholder="Search games, genres, platforms..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Class="search-input"
+                      Immediate="true" />
+    </div>
+
+    <MudText Typo="Typo.body2" Class="results-count">
+        Showing @FilteredGames.Count() of @GamesList.Count games
+    </MudText>
+
+    <MudGrid Spacing="3">
+        @foreach (var game in FilteredGames)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Class="game-card" Elevation="0">
+                    <div class="card-art @(game.GameArtUrl == null ? "card-art-loading" : "")"
+                         style="background: @GetGenreGradient(game.Genre)">
+                        @if (!string.IsNullOrEmpty(game.GameArtUrl))
+                        {
+                            <img src="@game.GameArtUrl" class="card-art-img" alt="@game.Name" />
+                        }
+                        else
+                        {
+                            <div class="card-art-icon">
+                                <MudIcon Icon="@GetGenreIcon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                            </div>
+                        }
+                        <div class="rating-badge @GetRatingClass(game.Review)">
+                            @game.Review<span class="rating-sub">/10</span>
+                        </div>
+                    </div>
+                    <MudCardContent Class="card-body">
+                        <p class="game-name">@game.Name</p>
+                        <p class="game-developer">@game.Developer</p>
+                        <div class="card-tags">
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="tag-chip">@game.System</MudChip>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@game.Genre</MudChip>
+                        </div>
+                        <div class="card-footer-row">
+                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="hours-icon" />
+                            <span class="hours-text">@game.HoursPlayed hrs played</span>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    @if (!FilteredGames.Any())
+    {
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 4rem; opacity: 0.3;" />
+            <MudText Typo="Typo.h6" Class="mt-3">No games found</MudText>
+            <MudText Typo="Typo.body2">Try adjusting your search</MudText>
+        </div>
+    }
+
+</MudContainer>
+
+@code {
+    private string _searchString = "";
+
+    private readonly List<Games> GamesList = new()
+    {
+        // — 2026 —
+        new Games { Name = "Baldur's Gate 3",                           Genre = "RPG",              System = "PC",              Developer = "Larian Studios",         HoursPlayed = 120, Review = 10 },
+        new Games { Name = "Elden Ring",                                Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",           HoursPlayed = 95,  Review = 10 },
+        new Games { Name = "God of War: Ragnarök",                      Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Santa Monica Studio",    HoursPlayed = 40,  Review = 10 },
+        new Games { Name = "Alan Wake 2",                               Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",   HoursPlayed = 20,  Review = 9  },
+        new Games { Name = "The Legend of Zelda: Tears of the Kingdom", Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 120, Review = 10 },
+
+        // — Earlier years —
+        new Games { Name = "The Witcher 3: Wild Hunt",                  Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",         HoursPlayed = 180, Review = 10 },
+        new Games { Name = "God of War",                                Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Santa Monica Studio",    HoursPlayed = 75,  Review = 10 },
+        new Games { Name = "Red Dead Redemption 2",                     Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Rockstar Games",         HoursPlayed = 110, Review = 9  },
+        new Games { Name = "Hollow Knight",                             Genre = "Metroidvania",     System = "PC",              Developer = "Team Cherry",            HoursPlayed = 45,  Review = 9  },
+        new Games { Name = "Hades",                                     Genre = "Roguelike",        System = "PC",              Developer = "Supergiant Games",       HoursPlayed = 55,  Review = 9  },
+        new Games { Name = "Persona 5 Royal",                           Genre = "JRPG",             System = "PlayStation 4",   Developer = "Atlus",                  HoursPlayed = 120, Review = 10 },
+        new Games { Name = "Breath of the Wild",                        Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 150, Review = 10 },
+        new Games { Name = "Disco Elysium",                             Genre = "RPG",              System = "PC",              Developer = "ZA/UM",                  HoursPlayed = 38,  Review = 9  },
+        new Games { Name = "Monster Hunter World",                      Genre = "Action RPG",       System = "PC",              Developer = "Capcom",                 HoursPlayed = 200, Review = 9  },
+        new Games { Name = "Dark Souls III",                            Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",           HoursPlayed = 80,  Review = 8  },
+        new Games { Name = "Cyberpunk 2077",                            Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",         HoursPlayed = 85,  Review = 8  },
+        new Games { Name = "Final Fantasy XIV",                         Genre = "MMORPG",           System = "PC",              Developer = "Square Enix",            HoursPlayed = 300, Review = 9  },
+        new Games { Name = "Sekiro: Shadows Die Twice",                 Genre = "Action",           System = "PC",              Developer = "FromSoftware",           HoursPlayed = 65,  Review = 8  },
+        new Games { Name = "Stardew Valley",                            Genre = "Simulation",       System = "PC",              Developer = "ConcernedApe",           HoursPlayed = 130, Review = 8  },
+        new Games { Name = "Death Stranding",                           Genre = "Action",           System = "PC",              Developer = "Kojima Productions",     HoursPlayed = 55,  Review = 7  },
+        new Games { Name = "Control",                                   Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",   HoursPlayed = 25,  Review = 8  },
+        new Games { Name = "Divinity: Original Sin 2",                  Genre = "RPG",              System = "PC",              Developer = "Larian Studios",         HoursPlayed = 160, Review = 10 },
+        new Games { Name = "Marvel's Spider-Man",                       Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Insomniac Games",        HoursPlayed = 30,  Review = 9  },
+        new Games { Name = "Mass Effect 2",                             Genre = "RPG",              System = "PC",              Developer = "BioWare",                HoursPlayed = 42,  Review = 10 },
+        new Games { Name = "Bloodborne",                                Genre = "Action RPG",       System = "PlayStation 4",   Developer = "FromSoftware",           HoursPlayed = 60,  Review = 10 },
+        new Games { Name = "The Last of Us Part II",                    Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Naughty Dog",            HoursPlayed = 30,  Review = 9  },
+        new Games { Name = "Ghost of Tsushima",                         Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Sucker Punch",           HoursPlayed = 50,  Review = 9  },
+        new Games { Name = "Horizon Zero Dawn",                         Genre = "Action RPG",       System = "PC",              Developer = "Guerrilla Games",        HoursPlayed = 45,  Review = 8  },
+        new Games { Name = "Spider-Man: Miles Morales",                 Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Insomniac Games",        HoursPlayed = 15,  Review = 9  },
+        new Games { Name = "Returnal",                                  Genre = "Roguelike",        System = "PlayStation 5",   Developer = "Housemarque",            HoursPlayed = 35,  Review = 9  },
+        new Games { Name = "Final Fantasy VII Remake",                  Genre = "JRPG",             System = "PlayStation 4",   Developer = "Square Enix",            HoursPlayed = 40,  Review = 9  },
+        new Games { Name = "Resident Evil Village",                     Genre = "Action",           System = "PC",              Developer = "Capcom",                 HoursPlayed = 12,  Review = 8  },
+        new Games { Name = "Metroid Dread",                             Genre = "Metroidvania",     System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 10,  Review = 9  },
+        new Games { Name = "Pokemon Legends: Arceus",                   Genre = "RPG",              System = "Nintendo Switch", Developer = "Game Freak",             HoursPlayed = 50,  Review = 8  },
+        new Games { Name = "Hogwarts Legacy",                           Genre = "Action RPG",       System = "PC",              Developer = "Avalanche Software",     HoursPlayed = 55,  Review = 8  },
+        new Games { Name = "Diablo IV",                                 Genre = "Action RPG",       System = "PC",              Developer = "Blizzard Entertainment", HoursPlayed = 60,  Review = 7  },
+        new Games { Name = "Armored Core VI",                           Genre = "Action",           System = "PC",              Developer = "FromSoftware",           HoursPlayed = 30,  Review = 9  },
+        new Games { Name = "Marvel's Spider-Man 2",                     Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Insomniac Games",        HoursPlayed = 20,  Review = 9  },
+        new Games { Name = "Super Mario Bros. Wonder",                  Genre = "Platformer",       System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 15,  Review = 9  },
+        new Games { Name = "Lies of P",                                 Genre = "Action RPG",       System = "PC",              Developer = "Neowiz",                 HoursPlayed = 35,  Review = 8  },
+        new Games { Name = "Sifu",                                      Genre = "Action",           System = "PC",              Developer = "Sloclap",                HoursPlayed = 20,  Review = 8  },
+        new Games { Name = "Vampire Survivors",                         Genre = "Roguelike",        System = "PC",              Developer = "Poncle",                 HoursPlayed = 25,  Review = 9  },
+        new Games { Name = "Cult of the Lamb",                          Genre = "Roguelike",        System = "PC",              Developer = "Massive Monster",        HoursPlayed = 20,  Review = 8  },
+        new Games { Name = "Stray",                                     Genre = "Action-Adventure", System = "PC",              Developer = "BlueTwelve Studio",      HoursPlayed = 5,   Review = 8  },
+        new Games { Name = "Tunic",                                     Genre = "Action-Adventure", System = "PC",              Developer = "Andrew Shouldice",       HoursPlayed = 15,  Review = 9  },
+        new Games { Name = "It Takes Two",                              Genre = "Action",           System = "PC",              Developer = "Hazelight Studios",      HoursPlayed = 12,  Review = 10 },
+        new Games { Name = "Demon's Souls",                             Genre = "Action RPG",       System = "PlayStation 5",   Developer = "Bluepoint Games",        HoursPlayed = 30,  Review = 9  },
+        new Games { Name = "Deathloop",                                 Genre = "Action",           System = "PC",              Developer = "Arkane Studios",         HoursPlayed = 20,  Review = 8  },
+        new Games { Name = "Psychonauts 2",                             Genre = "Platformer",       System = "PC",              Developer = "Double Fine Productions",HoursPlayed = 15,  Review = 9  },
+        new Games { Name = "Forza Horizon 5",                           Genre = "Racing",           System = "PC",              Developer = "Playground Games",       HoursPlayed = 40,  Review = 8  },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tasks = GamesList.Select(async game =>
+        {
+            game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private IEnumerable<Games> FilteredGames =>
+        GamesList.Where(g =>
+            string.IsNullOrWhiteSpace(_searchString) ||
+            (g.Name?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (g.Genre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (g.System?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (g.Developer?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false)
+        ).OrderByDescending(g => g.Review).ThenBy(g => g.Name);
+
+    private string GetRatingClass(int r) => r switch
+    {
+        >= 9 => "rating-excellent",
+        >= 7 => "rating-good",
+        >= 5 => "rating-average",
+        _    => "rating-poor"
+    };
+
+    private string GetGenreGradient(string? genre) => genre switch
+    {
+        "Action RPG"       => "linear-gradient(145deg, #1e0a3c 0%, #6b21a8 100%)",
+        "RPG"              => "linear-gradient(145deg, #0d1b4b 0%, #1d4ed8 100%)",
+        "Action-Adventure" => "linear-gradient(145deg, #1c0505 0%, #991b1b 100%)",
+        "JRPG"             => "linear-gradient(145deg, #3b0000 0%, #dc2626 100%)",
+        "Roguelike"        => "linear-gradient(145deg, #0a0a1a 0%, #4338ca 100%)",
+        "Metroidvania"     => "linear-gradient(145deg, #000d10 0%, #0e7490 100%)",
+        "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
+        "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
+        "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
+        "Platformer"       => "linear-gradient(145deg, #0a1a2a 0%, #0369a1 100%)",
+        "Racing"           => "linear-gradient(145deg, #1a0a00 0%, #d97706 100%)",
+        _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
+    };
+
+    private string GetGenreIcon(string? genre) => genre switch
+    {
+        "Action RPG"       => Icons.Material.Filled.AutoFixHigh,
+        "RPG"              => Icons.Material.Filled.AutoAwesome,
+        "Action-Adventure" => Icons.Material.Filled.Explore,
+        "JRPG"             => Icons.Material.Filled.Stars,
+        "Roguelike"        => Icons.Material.Filled.Loop,
+        "Metroidvania"     => Icons.Material.Filled.Terrain,
+        "Simulation"       => Icons.Material.Filled.Yard,
+        "MMORPG"           => Icons.Material.Filled.Groups,
+        "Action"           => Icons.Material.Filled.FlashOn,
+        "Platformer"       => Icons.Material.Filled.DirectionsRun,
+        "Racing"           => Icons.Material.Filled.Speed,
+        _                  => Icons.Material.Filled.SportsEsports,
+    };
+}
