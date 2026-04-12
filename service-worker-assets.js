@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "GuC4WZvh",
+  "version": "bm/lw2ZN",
   "assets": [
     {
       "hash": "sha256-Y90HcIE0+1FeN9M3sW8zkJJj5pIUdnAnKEOVbbHL4N0=",
@@ -98,8 +98,8 @@ self.assetsManifest = {
       "url": "_framework/MudBlazor.tnik6fzr3e.wasm"
     },
     {
-      "hash": "sha256-q2l/+JFcK82mf8YBaEYn9ptqGlbn87b4Bm/+obEkDsY=",
-      "url": "_framework/PlayedGames.1dklw7as9h.wasm"
+      "hash": "sha256-X58EiTZgWkQjjyfZw3uhOXd9h3uEOj1wWR7mMb9JFdk=",
+      "url": "_framework/PlayedGames.fcii24ym0s.wasm"
     },
     {
       "hash": "sha256-nDzwxg3Q2j6BrXMOfON8bAoXCJCn0JSU4rUkfku9KY0=",
@@ -182,8 +182,8 @@ self.assetsManifest = {
       "url": "_framework/System.Runtime.InteropServices.JavaScript.8jdb34iq28.wasm"
     },
     {
-      "hash": "sha256-18RN99kOb5dGASjc2aL5e4/E+suDSZ9FLY50CJ8OVzM=",
-      "url": "_framework/System.Runtime.n4be5wfwht.wasm"
+      "hash": "sha256-F6xeT80xJDBS/YPVY/FABX6aCVVt4iFOwETlVJ/HCPQ=",
+      "url": "_framework/System.Runtime.bjuy91he1r.wasm"
     },
     {
       "hash": "sha256-1qlvW+GPp2+gK7M0la3P+tFyvHLjnWdJxTTlRol4TkU=",
@@ -202,7 +202,7 @@ self.assetsManifest = {
       "url": "_framework/System.dqfxtvioy0.wasm"
     },
     {
-      "hash": "sha256-Pr/ywFHmtdWXVEhSwWLOPri1dkmAy1egjr9M4AQVGBg=",
+      "hash": "sha256-eKJPAUX49uk9ZNmyYN2kuznKvt4pX9bsNp0t8vOQw+E=",
       "url": "_framework/blazor.boot.json"
     },
     {
