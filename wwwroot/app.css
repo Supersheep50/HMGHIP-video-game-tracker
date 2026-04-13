@@ -23,7 +23,8 @@ html, body {
 .app-shell {
     min-height: 100vh;
     background-color: var(--bg-primary);
-    padding-top: 56px; /* fixed header height */
+    padding-top: 56px;    /* fixed header height */
+    padding-bottom: 64px; /* fixed bottom tab bar height */
 }
 
 /* =========================================
@@ -678,4 +679,56 @@ html, body {
     cursor: pointer;
     float: right;
     font-weight: bold;
+}
+
+/* =========================================
+   Bottom Tab Bar
+   ========================================= */
+.bottom-tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    height: 64px;
+    background: rgba(13, 17, 23, 0.95);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: stretch;
+}
+
+.tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    transition: color 0.15s;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.tab-item svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.tab-item:hover {
+    color: var(--accent-light);
+}
+
+.tab-item.tab-active {
+    color: var(--accent-light);
+}
+
+.tab-item.tab-active svg {
+    filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.5));
 }
