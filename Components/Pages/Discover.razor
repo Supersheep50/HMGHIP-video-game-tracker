@@ -1,0 +1,210 @@
+@page "/discover"
+@inject ISnackbar Snackbar
+
+<PageTitle>Discover — HMGHIP</PageTitle>
+
+<div class="hero-header library-hero">
+    <div class="hero-inner">
+        <div class="hero-title-section">
+            <div class="year-badge">Discover</div>
+            <p class="hero-title">Add Games</p>
+            <p class="hero-subtitle">Search for a game and add it to your lists</p>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-card">
+                <span class="stat-number">@Catalog.Count</span>
+                <span class="stat-label">Games</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
+
+    <div class="filter-row">
+        <MudTextField @bind-Value="_search"
+                      Placeholder="Search by title, genre or platform..."
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Class="search-input"
+                      Immediate="true" />
+    </div>
+
+    <MudText Typo="Typo.body2" Class="results-count">
+        Showing @Filtered.Count() of @Catalog.Count games
+    </MudText>
+
+    <MudGrid Spacing="3">
+        @foreach (var game in Filtered)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <div class="discover-card">
+                    <!-- Art -->
+                    <div class="card-art" style="background: @GenreGradient(game.Genre)">
+                        <div class="card-art-icon">
+                            <MudIcon Icon="@GenreIcon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                        </div>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="discover-body">
+                        <p class="game-name">@game.Title</p>
+                        <p class="game-developer">@game.Developer · @game.ReleaseYear</p>
+                        <div class="card-tags">
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="tag-chip">@game.Platform</MudChip>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@game.Genre</MudChip>
+                        </div>
+                    </div>
+
+                    <!-- Add actions -->
+                    <div class="discover-actions">
+                        <button class="add-btn add-btn-library" @onclick="() => Add(game, \"Library\")">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
+                            Library
+                        </button>
+                        <button class="add-btn add-btn-playing" @onclick="() => Add(game, \"Playing\")">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            Playing
+                        </button>
+                        <button class="add-btn add-btn-review" @onclick="() => Add(game, \"Review\")">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            Review
+                        </button>
+                    </div>
+                </div>
+            </MudItem>
+        }
+    </MudGrid>
+
+    @if (!Filtered.Any())
+    {
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 4rem; opacity: 0.3;" />
+            <MudText Typo="Typo.h6" Class="mt-3">No games found</MudText>
+            <MudText Typo="Typo.body2">Try a different search term</MudText>
+        </div>
+    }
+
+</MudContainer>
+
+@code {
+    private string _search = "";
+
+    private record CatalogGame(string Title, string Developer, string Genre, string Platform, int ReleaseYear);
+
+    private readonly List<CatalogGame> Catalog = new()
+    {
+        new("Baldur's Gate 3",                           "Larian Studios",          "RPG",              "PC",              2023),
+        new("Elden Ring",                                "FromSoftware",            "Action RPG",       "PC",              2022),
+        new("Elden Ring: Shadow of the Erdtree",         "FromSoftware",            "Action RPG",       "PC",              2024),
+        new("God of War: Ragnarök",                      "Santa Monica Studio",     "Action-Adventure", "PlayStation 5",   2022),
+        new("The Legend of Zelda: Tears of the Kingdom", "Nintendo",                "Action-Adventure", "Nintendo Switch", 2023),
+        new("The Legend of Zelda: Breath of the Wild",   "Nintendo",                "Action-Adventure", "Nintendo Switch", 2017),
+        new("The Witcher 3: Wild Hunt",                  "CD Projekt Red",          "RPG",              "PC",              2015),
+        new("Cyberpunk 2077",                            "CD Projekt Red",          "RPG",              "PC",              2020),
+        new("Cyberpunk 2077: Phantom Liberty",           "CD Projekt Red",          "RPG",              "PC",              2023),
+        new("Red Dead Redemption 2",                     "Rockstar Games",          "Action-Adventure", "PlayStation 4",   2018),
+        new("Hollow Knight",                             "Team Cherry",             "Metroidvania",     "PC",              2017),
+        new("Hollow Knight: Silksong",                   "Team Cherry",             "Metroidvania",     "PC",              2025),
+        new("Hades",                                     "Supergiant Games",        "Roguelike",        "PC",              2020),
+        new("Hades II",                                  "Supergiant Games",        "Roguelike",        "PC",              2024),
+        new("Persona 5 Royal",                           "Atlus",                   "JRPG",             "PlayStation 4",   2020),
+        new("Persona 3 Reload",                          "Atlus",                   "JRPG",             "PC",              2024),
+        new("Final Fantasy XVI",                         "Square Enix",             "Action RPG",       "PC",              2024),
+        new("Final Fantasy VII Rebirth",                 "Square Enix",             "JRPG",             "PlayStation 5",   2024),
+        new("Final Fantasy XIV",                         "Square Enix",             "MMORPG",           "PC",              2013),
+        new("Alan Wake 2",                               "Remedy Entertainment",    "Action-Adventure", "PC",              2023),
+        new("Control",                                   "Remedy Entertainment",    "Action-Adventure", "PC",              2019),
+        new("Dark Souls III",                            "FromSoftware",            "Action RPG",       "PC",              2016),
+        new("Bloodborne",                                "FromSoftware",            "Action RPG",       "PlayStation 4",   2015),
+        new("Sekiro: Shadows Die Twice",                 "FromSoftware",            "Action",           "PC",              2019),
+        new("Armored Core VI",                           "FromSoftware",            "Action",           "PC",              2023),
+        new("Disco Elysium",                             "ZA/UM",                   "RPG",              "PC",              2019),
+        new("Divinity: Original Sin 2",                  "Larian Studios",          "RPG",              "PC",              2017),
+        new("Monster Hunter World",                      "Capcom",                  "Action RPG",       "PC",              2018),
+        new("Monster Hunter Wilds",                      "Capcom",                  "Action RPG",       "PC",              2025),
+        new("Resident Evil 4 Remake",                    "Capcom",                  "Action",           "PC",              2023),
+        new("Devil May Cry 5",                           "Capcom",                  "Action",           "PC",              2019),
+        new("Ghost of Tsushima",                         "Sucker Punch",            "Action-Adventure", "PlayStation 4",   2020),
+        new("Ghost of Yotei",                            "Sucker Punch",            "Action-Adventure", "PlayStation 5",   2025),
+        new("Marvel's Spider-Man 2",                     "Insomniac Games",         "Action-Adventure", "PlayStation 5",   2023),
+        new("Ratchet & Clank: Rift Apart",               "Insomniac Games",         "Platformer",       "PlayStation 5",   2021),
+        new("Horizon Forbidden West",                    "Guerrilla Games",         "Action RPG",       "PlayStation 5",   2022),
+        new("Returnal",                                  "Housemarque",             "Roguelike",        "PlayStation 5",   2021),
+        new("Demon's Souls",                             "Bluepoint Games",         "Action RPG",       "PlayStation 5",   2020),
+        new("Metroid Dread",                             "Nintendo",                "Metroidvania",     "Nintendo Switch", 2021),
+        new("Metroid Prime Remastered",                  "Retro Studios",           "Metroidvania",     "Nintendo Switch", 2023),
+        new("Super Mario Bros. Wonder",                  "Nintendo",                "Platformer",       "Nintendo Switch", 2023),
+        new("Super Mario Odyssey",                       "Nintendo",                "Platformer",       "Nintendo Switch", 2017),
+        new("Pikmin 4",                                  "Nintendo",                "Simulation",       "Nintendo Switch", 2023),
+        new("Stardew Valley",                            "ConcernedApe",            "Simulation",       "PC",              2016),
+        new("Mass Effect 2",                             "BioWare",                 "RPG",              "PC",              2010),
+        new("Dragon Age: The Veilguard",                 "BioWare",                 "Action RPG",       "PC",              2024),
+        new("The Last of Us Part II Remastered",         "Naughty Dog",             "Action-Adventure", "PlayStation 5",   2024),
+        new("Death Stranding 2",                         "Kojima Productions",      "Action",           "PlayStation 5",   2025),
+        new("Lies of P",                                 "Neowiz",                  "Action RPG",       "PC",              2023),
+        new("Black Myth: Wukong",                        "Game Science",            "Action RPG",       "PC",              2024),
+        new("Astro Bot",                                 "Team Asobi",              "Platformer",       "PlayStation 5",   2024),
+        new("Stellar Blade",                             "Shift Up",                "Action",           "PlayStation 5",   2024),
+        new("Vampire Survivors",                         "Poncle",                  "Roguelike",        "PC",              2022),
+        new("Balatro",                                   "LocalThunk",              "Roguelike",        "PC",              2024),
+        new("Animal Crossing: New Horizons",             "Nintendo",                "Simulation",       "Nintendo Switch", 2020),
+        new("It Takes Two",                              "Hazelight Studios",       "Action",           "PC",              2021),
+        new("Forza Horizon 5",                           "Playground Games",        "Racing",           "PC",              2021),
+        new("Gran Turismo 7",                            "Polyphony Digital",       "Racing",           "PlayStation 5",   2022),
+    };
+
+    private IEnumerable<CatalogGame> Filtered =>
+        Catalog.Where(g =>
+            string.IsNullOrWhiteSpace(_search) ||
+            g.Title.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            g.Genre.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            g.Platform.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            g.Developer.Contains(_search, StringComparison.OrdinalIgnoreCase)
+        ).OrderBy(g => g.Title);
+
+    private void Add(CatalogGame game, string list)
+    {
+        var (icon, color, label) = list switch
+        {
+            "Library" => (Icons.Material.Filled.LibraryAddCheck, Severity.Success,  $"{game.Title} added to Library"),
+            "Playing" => (Icons.Material.Filled.PlayCircle,       Severity.Info,     $"{game.Title} added to Currently Playing"),
+            _         => (Icons.Material.Filled.StarRate,          Severity.Normal,   $"{game.Title} added to Reviews"),
+        };
+        Snackbar.Add(label, color, config => { config.Icon = icon; });
+    }
+
+    private static string GenreGradient(string genre) => genre switch
+    {
+        "Action RPG"       => "linear-gradient(145deg, #1e0a3c 0%, #6b21a8 100%)",
+        "RPG"              => "linear-gradient(145deg, #0d1b4b 0%, #1d4ed8 100%)",
+        "Action-Adventure" => "linear-gradient(145deg, #1c0505 0%, #991b1b 100%)",
+        "JRPG"             => "linear-gradient(145deg, #3b0000 0%, #dc2626 100%)",
+        "Roguelike"        => "linear-gradient(145deg, #0a0a1a 0%, #4338ca 100%)",
+        "Metroidvania"     => "linear-gradient(145deg, #000d10 0%, #0e7490 100%)",
+        "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
+        "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
+        "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
+        "Platformer"       => "linear-gradient(145deg, #0a1a2a 0%, #0369a1 100%)",
+        "Racing"           => "linear-gradient(145deg, #1a0a00 0%, #d97706 100%)",
+        _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
+    };
+
+    private static string GenreIcon(string genre) => genre switch
+    {
+        "Action RPG"       => Icons.Material.Filled.AutoFixHigh,
+        "RPG"              => Icons.Material.Filled.AutoAwesome,
+        "Action-Adventure" => Icons.Material.Filled.Explore,
+        "JRPG"             => Icons.Material.Filled.Stars,
+        "Roguelike"        => Icons.Material.Filled.Loop,
+        "Metroidvania"     => Icons.Material.Filled.Terrain,
+        "Simulation"       => Icons.Material.Filled.Yard,
+        "MMORPG"           => Icons.Material.Filled.Groups,
+        "Action"           => Icons.Material.Filled.FlashOn,
+        "Platformer"       => Icons.Material.Filled.DirectionsRun,
+        "Racing"           => Icons.Material.Filled.Speed,
+        _                  => Icons.Material.Filled.SportsEsports,
+    };
+}
