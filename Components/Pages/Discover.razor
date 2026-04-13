@@ -60,15 +60,15 @@
 
                     <!-- Add actions -->
                     <div class="discover-actions">
-                        <button class="add-btn add-btn-library" @onclick="() => Add(game, \"Library\")">
+                        <button class="add-btn add-btn-library" @onclick="() => AddToLibrary(game)">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
                             Library
                         </button>
-                        <button class="add-btn add-btn-playing" @onclick="() => Add(game, \"Playing\")">
+                        <button class="add-btn add-btn-playing" @onclick="() => AddToPlaying(game)">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                             Playing
                         </button>
-                        <button class="add-btn add-btn-review" @onclick="() => Add(game, \"Review\")">
+                        <button class="add-btn add-btn-review" @onclick="() => AddToReview(game)">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                             Review
                         </button>
@@ -165,16 +165,17 @@
             g.Developer.Contains(_search, StringComparison.OrdinalIgnoreCase)
         ).OrderBy(g => g.Title);
 
-    private void Add(CatalogGame game, string list)
-    {
-        var (icon, color, label) = list switch
-        {
-            "Library" => (Icons.Material.Filled.LibraryAddCheck, Severity.Success,  $"{game.Title} added to Library"),
-            "Playing" => (Icons.Material.Filled.PlayCircle,       Severity.Info,     $"{game.Title} added to Currently Playing"),
-            _         => (Icons.Material.Filled.StarRate,          Severity.Normal,   $"{game.Title} added to Reviews"),
-        };
-        Snackbar.Add(label, color, config => { config.Icon = icon; });
-    }
+    private void AddToLibrary(CatalogGame game) =>
+        Snackbar.Add($"{game.Title} added to Library", Severity.Success,
+            c => c.Icon = Icons.Material.Filled.LibraryAddCheck);
+
+    private void AddToPlaying(CatalogGame game) =>
+        Snackbar.Add($"{game.Title} added to Currently Playing", Severity.Info,
+            c => c.Icon = Icons.Material.Filled.PlayCircle);
+
+    private void AddToReview(CatalogGame game) =>
+        Snackbar.Add($"{game.Title} added to Reviews", Severity.Normal,
+            c => c.Icon = Icons.Material.Filled.StarRate);
 
     private static string GenreGradient(string genre) => genre switch
     {
