@@ -23,8 +23,8 @@ html, body {
 .app-shell {
     min-height: 100vh;
     background-color: var(--bg-primary);
-    padding-top: 56px;    /* fixed header height */
-    padding-bottom: 64px; /* fixed bottom tab bar height */
+    padding-top: 104px;   /* header 56px + search bar 48px */
+    padding-bottom: 64px; /* fixed bottom tab bar */
 }
 
 /* =========================================
@@ -682,6 +682,64 @@ html, body {
 }
 
 /* =========================================
+   Global Search Bar
+   ========================================= */
+.global-search-bar {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    z-index: 99;
+    height: 48px;
+    background: rgba(22, 27, 34, 0.97);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+}
+
+.global-search-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 0.75rem;
+    height: 32px;
+}
+
+.global-search-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.global-search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-family: inherit;
+}
+
+.global-search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.global-search-input::-webkit-search-cancel-button {
+    filter: invert(0.5);
+}
+
+/* =========================================
    Discover Page Cards
    ========================================= */
 .discover-card {
@@ -796,4 +854,10 @@ html, body {
 
 .tab-item.tab-active svg {
     filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.5));
+}
+
+.tab-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
 }

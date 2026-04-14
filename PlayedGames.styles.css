@@ -150,30 +150,28 @@ main[b-mk8lj30a9p] {
     background-clip: text;
 }
 
-/* Hamburger button */
-.menu-toggle[b-7j01r0qi0u] {
+/* Profile button (top-right) */
+.profile-btn[b-7j01r0qi0u] {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     border: 1px solid #30363d;
-    border-radius: 8px;
-    color: #e6edf3;
-    cursor: pointer;
-    padding: 0;
-    transition: background 0.15s, border-color 0.15s;
+    color: #8b949e;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
 }
 
-.menu-toggle:hover[b-7j01r0qi0u] {
-    background: rgba(255, 255, 255, 0.07);
+.profile-btn:hover[b-7j01r0qi0u] {
     border-color: #7c3aed;
+    color: #a78bfa;
 }
 
-.menu-toggle svg[b-7j01r0qi0u] {
-    width: 22px;
-    height: 22px;
+.profile-btn svg[b-7j01r0qi0u] {
+    width: 20px;
+    height: 20px;
 }
 
 /* =========================================
