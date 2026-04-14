@@ -5,13 +5,13 @@
 
 <div class="hero-header library-hero">
     <div class="hero-inner">
-        <div class="hero-title-section">
+        <div class="hero-title-section anim-fade-up">
             <div class="year-badge">Discover</div>
             <p class="hero-title">Add Games</p>
             <p class="hero-subtitle">Search for a game and add it to your lists</p>
         </div>
         <div class="hero-stats">
-            <div class="stat-card">
+            <div class="stat-card anim-fade-up anim-delay-2">
                 <span class="stat-number">@Catalog.Count</span>
                 <span class="stat-label">Games</span>
             </div>
@@ -37,10 +37,13 @@
     </MudText>
 
     <MudGrid Spacing="3">
+        @{ int cardIdx = 0; }
         @foreach (var game in Filtered)
         {
+            var delay = $"animation-delay:{cardIdx * 0.05}s";
+            cardIdx++;
             <MudItem xs="12" sm="6" md="4" lg="3">
-                <div class="discover-card">
+                <div class="discover-card card-reveal" style="@delay">
                     <!-- Art -->
                     <div class="card-art" style="background: @GenreGradient(game.Genre)">
                         <div class="card-art-icon">
