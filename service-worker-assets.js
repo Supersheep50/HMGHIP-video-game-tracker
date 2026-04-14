@@ -1,8 +1,8 @@
 self.assetsManifest = {
-  "version": "k+yNB6k2",
+  "version": "WFCjxLqo",
   "assets": [
     {
-      "hash": "sha256-p6KyMxsEUNNhNOqm0OsyS7sfcEXeRNGUijUjrGSkpKM=",
+      "hash": "sha256-t78t0nR0ymJ7UBKVmNiIcRELeAuq9eJJi5GJWxd4hSc=",
       "url": "PlayedGames.styles.css"
     },
     {
@@ -98,8 +98,8 @@ self.assetsManifest = {
       "url": "_framework/MudBlazor.h7l7u71dmi.wasm"
     },
     {
-      "hash": "sha256-VsNJyP+0WydtATNTYz29QsXTOuZjYrW6Hn+zDTPYsPE=",
-      "url": "_framework/PlayedGames.y9jjv33d36.wasm"
+      "hash": "sha256-mPOHbYvXDBMibz3eSrtAf+QAbF7CqLZJXiyALUjbSRE=",
+      "url": "_framework/PlayedGames.k5xjxl1q7p.wasm"
     },
     {
       "hash": "sha256-NJMSFcTcIwqWu0ceaR7fx7j9jKfRZA5i+MLxOqtO7Us=",
@@ -202,7 +202,7 @@ self.assetsManifest = {
       "url": "_framework/System.dqfxtvioy0.wasm"
     },
     {
-      "hash": "sha256-u8AoTuP9b691/lIru+olA1usokSCF+wv4fgowhKaLn0=",
+      "hash": "sha256-T/WGsaFP6X+x0fLXSxA8SHA/gY0GDaJXAypSkoergMc=",
       "url": "_framework/blazor.boot.json"
     },
     {
@@ -238,7 +238,7 @@ self.assetsManifest = {
       "url": "_framework/icudt_no_CJK.lfu7j35m59.dat"
     },
     {
-      "hash": "sha256-CUc5ORJcRkvNanvDRkbfNqvASAbEcejw9kEL2HUrsGE=",
+      "hash": "sha256-tD9eWELyS3Fo25uaiHb5EF9PkYI2/yJ4Xyl8V7XdF5k=",
       "url": "app.css"
     },
     {
