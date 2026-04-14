@@ -36,6 +36,11 @@
             z-index: 9999;
             font-family: system-ui, -apple-system, sans-serif;
             overflow: hidden;
+            transition: opacity 0.5s ease;
+        }
+        #boot-screen.boot-done {
+            opacity: 0;
+            pointer-events: none;
         }
         .boot-icon {
             animation: bootPulse 1.6s ease-in-out infinite;
@@ -135,8 +140,9 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <div id="boot-screen">
+    <div id="app"></div>
+
+    <div id="boot-screen">
             <div class="boot-icon">
                 <svg width="56" height="56" viewBox="0 0 24 24" fill="#a78bfa" xmlns="http://www.w3.org/2000/svg">
                     <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5S14.67 12 15.5 12s1.5.67 1.5 1.5S16.33 15 15.5 15zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5S19.33 12 18.5 12z"/>
@@ -152,7 +158,6 @@
                 <div class="boot-tip-label">Tip</div>
                 <div class="boot-tip-text" id="boot-tip"></div>
             </div>
-        </div>
     </div>
 
     <div id="blazor-error-ui">
@@ -201,7 +206,22 @@
         document.getElementById('boot-tip').textContent =
             tips[Math.floor(Math.random() * tips.length)];
 
-        window._bootCleanup = () => clearInterval(msgInterval);
+        // Record when the page started loading
+        const bootStart = Date.now();
+        const MIN_MS = 4000; // must show for at least 4 seconds
+
+        // Called by MainLayout once Blazor has fully rendered
+        window._appReady = function () {
+            clearInterval(msgInterval);
+            const elapsed = Date.now() - bootStart;
+            const remaining = Math.max(0, MIN_MS - elapsed);
+            setTimeout(() => {
+                const screen = document.getElementById('boot-screen');
+                if (!screen) return;
+                screen.classList.add('boot-done');
+                setTimeout(() => screen.remove(), 500);
+            }, remaining);
+        };
     </script>
 
     <script>
