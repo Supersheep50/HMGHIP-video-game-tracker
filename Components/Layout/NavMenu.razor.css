@@ -50,134 +50,27 @@
     background-clip: text;
 }
 
-/* Profile button (top-right) */
+/* Profile button (top-right) — same size/style as old hamburger */
 .profile-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background: none;
     border: 1px solid #30363d;
-    color: #8b949e;
+    border-radius: 8px;
+    color: #e6edf3;
     text-decoration: none;
-    transition: border-color 0.15s, color 0.15s;
+    transition: background 0.15s, border-color 0.15s;
 }
 
 .profile-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
     border-color: #7c3aed;
-    color: #a78bfa;
 }
 
 .profile-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-/* =========================================
-   Backdrop
-   ========================================= */
-.menu-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 110;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(2px);
-    animation: fadeIn 0.18s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
-
-/* =========================================
-   Side Drawer
-   ========================================= */
-.side-drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 280px;
-    z-index: 120;
-    background: #161b22;
-    border-left: 1px solid #30363d;
-    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
-    animation: slideIn 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    display: flex;
-    flex-direction: column;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0.5; }
-    to   { transform: translateX(0);    opacity: 1; }
-}
-
-.drawer-header {
-    padding: 1.25rem 1.25rem 0.75rem;
-    border-bottom: 1px solid #30363d;
-}
-
-.drawer-title {
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #8b949e;
-}
-
-/* Drawer list */
-.drawer-list {
-    list-style: none;
-    margin: 0;
-    padding: 0.5rem 0;
-    flex: 1;
-}
-
-.drawer-list li {
-    padding: 0 0.5rem;
-}
-
-.drawer-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 0.85rem;
-    border-radius: 8px;
-    color: #c9d1d9;
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: background 0.12s, color 0.12s;
-    cursor: pointer;
-}
-
-.drawer-link:hover,
-.drawer-link:active {
-    background: rgba(124, 58, 237, 0.12);
-    color: #a78bfa;
-}
-
-.drawer-link svg {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    opacity: 0.75;
-}
-
-.drawer-link-danger {
-    color: #f87171;
-}
-
-.drawer-link-danger:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #f87171;
-}
-
-.drawer-divider {
-    height: 1px;
-    background: #30363d;
-    margin: 0.5rem 0.5rem;
-    padding: 0 !important;
+    width: 22px;
+    height: 22px;
 }
