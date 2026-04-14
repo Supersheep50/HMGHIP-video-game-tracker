@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject IJSRuntime JS
 
 <MudThemeProvider IsDarkMode="true" />
 <MudPopoverProvider />
@@ -27,3 +28,11 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            try { await JS.InvokeVoidAsync("_appReady"); } catch { }
+    }
+}
