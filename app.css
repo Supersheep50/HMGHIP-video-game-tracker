@@ -749,26 +749,37 @@ html, body {
 
 .side-drawer {
     position: fixed;
-    top: 0;
+    bottom: 64px; /* sit above the tab bar */
+    left: 0;
     right: 0;
-    bottom: 0;
-    width: 280px;
     z-index: 120;
     background: #161b22;
-    border-left: 1px solid #30363d;
-    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5);
-    animation: slideIn 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 1px solid #30363d;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
     flex-direction: column;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0.5; }
-    to   { transform: translateX(0);    opacity: 1; }
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+}
+
+.drawer-handle-bar {
+    width: 36px;
+    height: 4px;
+    background: #30363d;
+    border-radius: 2px;
+    margin: 10px auto 4px;
+    flex-shrink: 0;
 }
 
 .drawer-header {
-    padding: 1.25rem 1.25rem 0.75rem;
+    padding: 0.5rem 1.25rem 0.75rem;
     border-bottom: 1px solid #30363d;
 }
 
