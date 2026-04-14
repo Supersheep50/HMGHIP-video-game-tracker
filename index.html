@@ -35,6 +35,7 @@
             gap: 0;
             z-index: 9999;
             font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
         }
         .boot-icon {
             animation: bootPulse 1.6s ease-in-out infinite;
@@ -92,7 +93,8 @@
             55%  { width: 66%; }
             72%  { width: 80%; }
             88%  { width: 91%; }
-            100% { width: 97%; }
+            96%  { width: 97%; }
+            100% { width: 100%; }
         }
         .boot-msg {
             font-size: 0.72rem;
@@ -101,6 +103,34 @@
             text-transform: uppercase;
             min-height: 1.1em;
             transition: opacity 0.3s;
+        }
+        .boot-tip-wrap {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 0;
+            right: 0;
+            padding: 0 2rem;
+            text-align: center;
+            animation: fadeUp 0.6s 1.2s ease both;
+        }
+        .boot-tip-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #a78bfa;
+            margin-bottom: 0.4rem;
+        }
+        .boot-tip-text {
+            font-size: 0.78rem;
+            color: #4b5563;
+            line-height: 1.6;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -117,7 +147,11 @@
             <div class="boot-bar-wrap">
                 <div class="boot-bar-fill"></div>
             </div>
-            <div class="boot-msg" id="boot-msg">Initializing...</div>
+            <div class="boot-msg" id="boot-msg">Loading...</div>
+            <div class="boot-tip-wrap">
+                <div class="boot-tip-label">Tip</div>
+                <div class="boot-tip-text" id="boot-tip"></div>
+            </div>
         </div>
     </div>
 
@@ -129,7 +163,7 @@
 
     <script>
         const msgs = [
-            'Initializing save data...',
+            'Loading...',
             'Loading game library...',
             'Fetching achievements...',
             'Buffering open worlds...',
@@ -150,10 +184,32 @@
             }, 150);
         }, 900);
 
-        // Clean up when Blazor is ready
+        const tips = [
+            'Explore every corner — the best loot is never on the main path.',
+            'Save often. The autosave isn\'t always watching.',
+            'Talk to every NPC at least twice. They remember things.',
+            'Side quests aren\'t distractions. They\'re the real game.',
+            'Check your inventory. You\'ve been carrying that item for a reason.',
+            'The final boss always has a weakness. Everyone does.',
+            'You can always come back. Almost nothing is truly missable.',
+            'Turn up the brightness. The developers hid things in the dark.',
+            'The map lies. Trust your instincts.',
+            'There\'s always a third option. You just haven\'t found it yet.',
+            'In every game, the merchants buy high and sell higher. Budget accordingly.',
+            'A full party beats a powerful solo every time.',
+        ];
+        document.getElementById('boot-tip').textContent =
+            tips[Math.floor(Math.random() * tips.length)];
+
         window._bootCleanup = () => clearInterval(msgInterval);
     </script>
 
+    <script>
+        // Haptic feedback — Android Chrome only (iOS Safari has no web vibration API)
+        window.haptic = (ms) => {
+            if (navigator.vibrate) navigator.vibrate(ms ?? 30);
+        };
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
