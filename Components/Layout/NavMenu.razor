@@ -6,76 +6,10 @@
             </svg>
             <span class="brand-name">HMGHIP</span>
         </a>
-        <button class="menu-toggle" @onclick="ToggleMenu" aria-label="Open menu" @onclick:stopPropagation>
-            @if (_open)
-            {
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-            }
-            else
-            {
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            }
-        </button>
+        <a href="profile" class="profile-btn" aria-label="Profile">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+            </svg>
+        </a>
     </div>
 </header>
-
-@if (_open)
-{
-    <div class="menu-backdrop" @onclick="Close"></div>
-    <nav class="side-drawer">
-        <div class="drawer-header">
-            <span class="drawer-title">Menu</span>
-        </div>
-        <ul class="drawer-list">
-            <li>
-                <a href="library" class="drawer-link" @onclick="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
-                    Games Library
-                </a>
-            </li>
-            <li>
-                <a href="about" class="drawer-link" @onclick="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                    About
-                </a>
-            </li>
-            <li>
-                <a href="contact" class="drawer-link" @onclick="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                    Contact
-                </a>
-            </li>
-            <li class="drawer-divider"></li>
-            <li>
-                <a href="login" class="drawer-link" @onclick="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
-                    Log In
-                </a>
-            </li>
-            <li>
-                <a href="logout" class="drawer-link drawer-link-danger" @onclick="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-                    Log Out
-                </a>
-            </li>
-        </ul>
-    </nav>
-}
-
-@inject IJSRuntime JS
-
-@code {
-    private bool _open;
-
-    private async Task ToggleMenu()
-    {
-        _open = !_open;
-        try { await JS.InvokeVoidAsync("haptic", _open ? 40 : 20); } catch { }
-    }
-
-    private async Task Close()
-    {
-        _open = false;
-        try { await JS.InvokeVoidAsync("haptic", 15); } catch { }
-    }
-}
