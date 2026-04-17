@@ -1,6 +1,5 @@
 @page "/"
 @inject PlayedGames.Services.RawgService RawgService
-@inject ISnackbar Snackbar
 
 <PageTitle>HMGHIP — Games Played 2026</PageTitle>
 
@@ -92,13 +91,19 @@
                         </div>
                     </MudCardContent>
                     <div class="card-actions">
-                        <button class="card-action-btn card-action-playing" @onclick="() => AddToPlaying(game)">
+                        <button class="card-action-btn card-action-playing @(_playing.Contains(game.Name!) ? "action-active" : "")" @onclick="() => TogglePlaying(game)">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                             Playing
+                            @if (_playing.Contains(game.Name!)) {
+                                <svg class="action-tick" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            }
                         </button>
-                        <button class="card-action-btn card-action-finished" @onclick="() => MarkFinished(game)">
+                        <button class="card-action-btn card-action-finished @(_finished.Contains(game.Name!) ? "action-active" : "")" @onclick="() => ToggleFinished(game)">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                             Finished
+                            @if (_finished.Contains(game.Name!)) {
+                                <svg class="action-tick" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            }
                         </button>
                     </div>
                 </MudCard>
@@ -129,13 +134,20 @@
         await Task.WhenAll(tasks);
     }
 
-    private void AddToPlaying(Games game) =>
-        Snackbar.Add($"{game.Name} added to Currently Playing", Severity.Info,
-            c => c.Icon = Icons.Material.Filled.PlayCircle);
+    private readonly HashSet<string> _playing  = new();
+    private readonly HashSet<string> _finished = new();
 
-    private void MarkFinished(Games game) =>
-        Snackbar.Add($"{game.Name} marked as Finished", Severity.Success,
-            c => c.Icon = Icons.Material.Filled.CheckCircle);
+    private void TogglePlaying(Games game)
+    {
+        if (!_playing.Add(game.Name!)) _playing.Remove(game.Name!);
+        else _finished.Remove(game.Name!);
+    }
+
+    private void ToggleFinished(Games game)
+    {
+        if (!_finished.Add(game.Name!)) _finished.Remove(game.Name!);
+        else _playing.Remove(game.Name!);
+    }
 
     private static MarkupString RenderStars(double score)
     {

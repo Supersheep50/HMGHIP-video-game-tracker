@@ -1263,8 +1263,8 @@ html, body {
     font-size: 0.68rem;
 }
 
-.rating-excellent { color: #a78bfa; }
-.rating-good      { color: #34d399; }
+.rating-excellent { color: #c4b5fd; }
+.rating-good      { color: #e2e8f0; }
 .rating-average   { color: #fbbf24; }
 .rating-poor      { color: #f87171; }
 
@@ -1294,21 +1294,21 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.3rem;
-    padding: 0.55rem 0.25rem;
-    background: none;
+    gap: 0.35rem;
+    padding: 0.7rem 0.25rem;
+    background: rgba(124, 58, 237, 0.12);
     border: none;
-    color: var(--text-muted);
-    font-size: 0.72rem;
+    color: #a78bfa;
+    font-size: 0.75rem;
     font-weight: 600;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.18s, color 0.18s;
 }
 
 .card-action-btn svg {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
     flex-shrink: 0;
 }
 
@@ -1316,12 +1316,18 @@ html, body {
     border-right: 1px solid var(--border);
 }
 
-.card-action-playing:hover {
-    background: rgba(34, 197, 94, 0.1);
-    color: #4ade80;
+.card-action-btn:hover {
+    background: rgba(124, 58, 237, 0.22);
+    color: #c4b5fd;
 }
 
-.card-action-finished:hover {
-    background: rgba(124, 58, 237, 0.12);
-    color: #a78bfa;
+.card-action-btn.action-active {
+    background: rgba(124, 58, 237, 0.35);
+    color: #ede9fe;
+}
+
+.action-tick {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
 }
