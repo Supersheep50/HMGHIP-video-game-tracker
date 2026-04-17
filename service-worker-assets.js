@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "fjebqE4h",
+  "version": "qc+5qrRc",
   "assets": [
     {
       "hash": "sha256-ox/hMOo9zNWYbb4mOU6u1Y1BWQZagPWi0Omy44GKCUw=",
@@ -42,8 +42,8 @@ self.assetsManifest = {
       "url": "_framework/Microsoft.Extensions.Configuration.zvahtr4ggx.wasm"
     },
     {
-      "hash": "sha256-wXPgKbf+H7Xud78cUp4sx7LkXcUspUkYR9MqttMn+hA=",
-      "url": "_framework/Microsoft.Extensions.DependencyInjection.Abstractions.zjfqfvzlwa.wasm"
+      "hash": "sha256-NPXrg9ff4AtiKoTqK4gGUTEBW4Zr+i4v4bYzMXH8qek=",
+      "url": "_framework/Microsoft.Extensions.DependencyInjection.Abstractions.05o4ehjrma.wasm"
     },
     {
       "hash": "sha256-uF4R5H4T9NajnjKMGIFZ3zGbWpsiifbjXnLuqCSUDNs=",
@@ -98,8 +98,8 @@ self.assetsManifest = {
       "url": "_framework/MudBlazor.h7l7u71dmi.wasm"
     },
     {
-      "hash": "sha256-ENmWQCNI8Pffk9Edsj6DBNuZRRTaSR8m9smvedCor4E=",
-      "url": "_framework/PlayedGames.oy5ndv2ijc.wasm"
+      "hash": "sha256-Ruq5IWc1QSreS+JWGtscdiWqNKWMkWK2PvPnd6UbXsg=",
+      "url": "_framework/PlayedGames.22vysezuwg.wasm"
     },
     {
       "hash": "sha256-NJMSFcTcIwqWu0ceaR7fx7j9jKfRZA5i+MLxOqtO7Us=",
@@ -202,7 +202,7 @@ self.assetsManifest = {
       "url": "_framework/System.dqfxtvioy0.wasm"
     },
     {
-      "hash": "sha256-x6ji/fyYoSblpthk1V4A6mKYgGwtstto+gFpFo9+4nQ=",
+      "hash": "sha256-HRu/aYK5Fxze+IsJKyYTgJFeF9MfllTTkSI2HuH6Hdo=",
       "url": "_framework/blazor.boot.json"
     },
     {

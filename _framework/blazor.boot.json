@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "PlayedGames",
   "resources": {
-    "hash": "sha256-xerWVr8FbnOAGVztYMRV+dsP5UgJiFxMcz0MEqsv2Mo=",
+    "hash": "sha256-iU8M8e7nsABZcsscly9QovbaSJ0q29JIStyEJ/SIJys=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Components.he74jey7no.wasm": "Microsoft.AspNetCore.Components.wasm",
       "Microsoft.AspNetCore.Components.Forms.9104tc46su.wasm": "Microsoft.AspNetCore.Components.Forms.wasm",
@@ -11,7 +11,7 @@
       "Microsoft.Extensions.Configuration.Abstractions.rpl2xiaw74.wasm": "Microsoft.Extensions.Configuration.Abstractions.wasm",
       "Microsoft.Extensions.Configuration.Json.pkmz0vshvj.wasm": "Microsoft.Extensions.Configuration.Json.wasm",
       "Microsoft.Extensions.DependencyInjection.w22by8o3it.wasm": "Microsoft.Extensions.DependencyInjection.wasm",
-      "Microsoft.Extensions.DependencyInjection.Abstractions.zjfqfvzlwa.wasm": "Microsoft.Extensions.DependencyInjection.Abstractions.wasm",
+      "Microsoft.Extensions.DependencyInjection.Abstractions.05o4ehjrma.wasm": "Microsoft.Extensions.DependencyInjection.Abstractions.wasm",
       "Microsoft.Extensions.Diagnostics.fdiqvye2p0.wasm": "Microsoft.Extensions.Diagnostics.wasm",
       "Microsoft.Extensions.Diagnostics.Abstractions.srv3bcs8o4.wasm": "Microsoft.Extensions.Diagnostics.Abstractions.wasm",
       "Microsoft.Extensions.Http.8ndlldekrc.wasm": "Microsoft.Extensions.Http.wasm",
@@ -49,7 +49,7 @@
       "System.Text.RegularExpressions.t5hrna7mrk.wasm": "System.Text.RegularExpressions.wasm",
       "System.dqfxtvioy0.wasm": "System.wasm",
       "System.Private.CoreLib.oa1aqvci7k.wasm": "System.Private.CoreLib.wasm",
-      "PlayedGames.oy5ndv2ijc.wasm": "PlayedGames.wasm",
+      "PlayedGames.22vysezuwg.wasm": "PlayedGames.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.l1ds2rhypd.js": "dotnet.native.js",
       "dotnet.native.etgrtk5jba.wasm": "dotnet.native.wasm",
@@ -85,7 +85,7 @@
       "Microsoft.Extensions.Configuration.Abstractions.rpl2xiaw74.wasm": "sha256-kTxrVw3M+h6naVhidjzL0WLjpyYNrNaxN7y+vSxzi9o=",
       "Microsoft.Extensions.Configuration.Json.pkmz0vshvj.wasm": "sha256-98YJzT/TckOSgnyg0LjjEYo6Crk4xG402PUBMQooBP8=",
       "Microsoft.Extensions.DependencyInjection.w22by8o3it.wasm": "sha256-uF4R5H4T9NajnjKMGIFZ3zGbWpsiifbjXnLuqCSUDNs=",
-      "Microsoft.Extensions.DependencyInjection.Abstractions.zjfqfvzlwa.wasm": "sha256-wXPgKbf+H7Xud78cUp4sx7LkXcUspUkYR9MqttMn+hA=",
+      "Microsoft.Extensions.DependencyInjection.Abstractions.05o4ehjrma.wasm": "sha256-NPXrg9ff4AtiKoTqK4gGUTEBW4Zr+i4v4bYzMXH8qek=",
       "Microsoft.Extensions.Diagnostics.fdiqvye2p0.wasm": "sha256-fXkARAHErPO8xufhEatTwQZhe+E8e8KqzBn8fLqgv74=",
       "Microsoft.Extensions.Diagnostics.Abstractions.srv3bcs8o4.wasm": "sha256-mB7MhDw6v0RLGk/OicWyTeRGkle03iCklbLtAYw+or8=",
       "Microsoft.Extensions.Http.8ndlldekrc.wasm": "sha256-VKEuoQEqxLcopTybZ62kCtsa/SLcp/0lDPs28GebZqI=",
@@ -121,7 +121,7 @@
       "System.Text.Json.976l2tuehf.wasm": "sha256-W7ew3aTr0sCDEM4pfUhg2SdQ7pYBG24JECmBf0l2HW0=",
       "System.Text.RegularExpressions.t5hrna7mrk.wasm": "sha256-X6EWGhYzdVOg2DTTG9/ID1VFGxCzdYXpJmhfVXK4m7E=",
       "System.dqfxtvioy0.wasm": "sha256-5QZAjy4n7513fYxCXSXTsAkUmRsLiZ8m621Ot4k7FB0=",
-      "PlayedGames.oy5ndv2ijc.wasm": "sha256-ENmWQCNI8Pffk9Edsj6DBNuZRRTaSR8m9smvedCor4E="
+      "PlayedGames.22vysezuwg.wasm": "sha256-Ruq5IWc1QSreS+JWGtscdiWqNKWMkWK2PvPnd6UbXsg="
     }
   },
   "cacheBootResources": true,
