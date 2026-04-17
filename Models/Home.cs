@@ -7,7 +7,8 @@ namespace PlayedGames.Modals
         public string? Genre { get; set; }
         public string? Developer { get; set; }
         public double HoursPlayed { get; set; }
-        public int Review { get; set; }
+        public double Review { get; set; }
+        public double HowLongToBeat { get; set; }
         public string? GameArtUrl { get; set; }
     }
 }
