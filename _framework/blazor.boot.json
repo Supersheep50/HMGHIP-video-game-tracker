@@ -1,9 +1,9 @@
 {
   "mainAssemblyName": "PlayedGames",
   "resources": {
-    "hash": "sha256-fsUQ5WtRzzpYjBBFGrCPJ0wAtVkiDrd7Y5axxjejp50=",
+    "hash": "sha256-xerWVr8FbnOAGVztYMRV+dsP5UgJiFxMcz0MEqsv2Mo=",
     "fingerprinting": {
-      "Microsoft.AspNetCore.Components.plz38lejfi.wasm": "Microsoft.AspNetCore.Components.wasm",
+      "Microsoft.AspNetCore.Components.he74jey7no.wasm": "Microsoft.AspNetCore.Components.wasm",
       "Microsoft.AspNetCore.Components.Forms.9104tc46su.wasm": "Microsoft.AspNetCore.Components.Forms.wasm",
       "Microsoft.AspNetCore.Components.Web.i2b1wrzt0f.wasm": "Microsoft.AspNetCore.Components.Web.wasm",
       "Microsoft.AspNetCore.Components.WebAssembly.md3jtowk2j.wasm": "Microsoft.AspNetCore.Components.WebAssembly.wasm",
@@ -48,8 +48,8 @@
       "System.Text.Json.976l2tuehf.wasm": "System.Text.Json.wasm",
       "System.Text.RegularExpressions.t5hrna7mrk.wasm": "System.Text.RegularExpressions.wasm",
       "System.dqfxtvioy0.wasm": "System.wasm",
-      "System.Private.CoreLib.yqehxu3tdl.wasm": "System.Private.CoreLib.wasm",
-      "PlayedGames.ztn75605o7.wasm": "PlayedGames.wasm",
+      "System.Private.CoreLib.oa1aqvci7k.wasm": "System.Private.CoreLib.wasm",
+      "PlayedGames.oy5ndv2ijc.wasm": "PlayedGames.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.l1ds2rhypd.js": "dotnet.native.js",
       "dotnet.native.etgrtk5jba.wasm": "dotnet.native.wasm",
@@ -74,10 +74,10 @@
     },
     "coreAssembly": {
       "System.Runtime.InteropServices.JavaScript.8jdb34iq28.wasm": "sha256-RCwjOsDHKssxMT8rHYj0tf9yQki2a+/u7PL4dXnouTA=",
-      "System.Private.CoreLib.yqehxu3tdl.wasm": "sha256-FjIbG7cOe9C3LXFjVH8zY/52FZI39NjxYQsQPnDU4Lg="
+      "System.Private.CoreLib.oa1aqvci7k.wasm": "sha256-8GQYUoaqZymLx8kPKqR2tRL1Uio4+k/D62wbZ281raQ="
     },
     "assembly": {
-      "Microsoft.AspNetCore.Components.plz38lejfi.wasm": "sha256-Aw1oqKyM5Eir6PS30s+Fvf8/tarYeQtol2n1PRUBgP0=",
+      "Microsoft.AspNetCore.Components.he74jey7no.wasm": "sha256-ecmZ7o1MbMV4VoHMnt6Uw1iPKaWRWOfUXC+hczpjH4U=",
       "Microsoft.AspNetCore.Components.Forms.9104tc46su.wasm": "sha256-LYbPr59lEwE1/T+A4p/nSvFJoQjk8mny8XqaNsUHXwE=",
       "Microsoft.AspNetCore.Components.Web.i2b1wrzt0f.wasm": "sha256-tjVjMWpLRU/54Qb9ckcKWV5lSKDboPw20EWvOliSUaM=",
       "Microsoft.AspNetCore.Components.WebAssembly.md3jtowk2j.wasm": "sha256-2jTxS8uvIDc2sCG1cuVII9E9XK51djV0kauEa8lww8M=",
@@ -121,7 +121,7 @@
       "System.Text.Json.976l2tuehf.wasm": "sha256-W7ew3aTr0sCDEM4pfUhg2SdQ7pYBG24JECmBf0l2HW0=",
       "System.Text.RegularExpressions.t5hrna7mrk.wasm": "sha256-X6EWGhYzdVOg2DTTG9/ID1VFGxCzdYXpJmhfVXK4m7E=",
       "System.dqfxtvioy0.wasm": "sha256-5QZAjy4n7513fYxCXSXTsAkUmRsLiZ8m621Ot4k7FB0=",
-      "PlayedGames.ztn75605o7.wasm": "sha256-mU6/EzqMpqvZ3G5x8A/osmV92hcJ+9mTqDyad5UNOlI="
+      "PlayedGames.oy5ndv2ijc.wasm": "sha256-ENmWQCNI8Pffk9Edsj6DBNuZRRTaSR8m9smvedCor4E="
     }
   },
   "cacheBootResources": true,
