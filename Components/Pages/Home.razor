@@ -71,23 +71,27 @@
                         }
                     </div>
                     <MudCardContent Class="card-body">
-                        <p class="game-name">@game.Name</p>
-                        <p class="game-developer">@game.Developer</p>
-                        <div class="card-star-row">
-                            <span class="card-stars">@RenderStars(game.Review)</span>
+                        <div class="card-title-row">
+                            <p class="game-name">@game.Name</p>
                             <span class="card-score @GetRatingClass(game.Review)">@game.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
                         </div>
-                        <div class="card-hltb">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
-                            <span>~@game.HowLongToBeat hrs to beat</span>
+                        <div class="card-stars-wrap">@RenderStars(game.Review)</div>
+                        <div class="card-meta-row">
+                            <p class="game-developer">@game.Developer</p>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="tag-chip">@game.System</MudChip>
+                        </div>
+                        <div class="card-info-row">
+                            <div class="card-hltb">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+                                <span>~@game.HowLongToBeat hrs to beat</span>
+                            </div>
+                            <div class="card-played">
+                                <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="hours-icon" />
+                                <span class="hours-text">@game.HoursPlayed hrs played</span>
+                            </div>
                         </div>
                         <div class="card-tags">
-                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="tag-chip">@game.System</MudChip>
                             <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@game.Genre</MudChip>
-                        </div>
-                        <div class="card-footer-row">
-                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="hours-icon" />
-                            <span class="hours-text">@game.HoursPlayed hrs played</span>
                         </div>
                     </MudCardContent>
                     <div class="card-actions">
