@@ -1,5 +1,7 @@
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
+@inject AuthStateService AuthState
+@inject NavigationManager Nav
 
 <MudThemeProvider IsDarkMode="true" />
 <MudPopoverProvider />
@@ -30,9 +32,20 @@
 </div>
 
 @code {
+    private static readonly string[] AuthRoutes = ["/login", "/logout", "/auth/"];
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
             try { await JS.InvokeVoidAsync("_appReady"); } catch { }
+    }
+
+    protected override void OnInitialized()
+    {
+        var path = "/" + Nav.ToBaseRelativePath(Nav.Uri).TrimStart('/');
+        var onAuthPage = AuthRoutes.Any(r => path.StartsWith(r, StringComparison.OrdinalIgnoreCase));
+
+        if (!AuthState.IsAuthenticated && !onAuthPage)
+            Nav.NavigateTo("login", replace: true);
     }
 }

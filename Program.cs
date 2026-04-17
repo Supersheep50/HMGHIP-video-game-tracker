@@ -10,5 +10,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
 builder.Services.AddHttpClient<RawgService>();
+builder.Services.AddScoped<AuthStateService>();
 
 await builder.Build().RunAsync();

@@ -1,5 +1,6 @@
 @page "/login"
 @inject NavigationManager Nav
+@inject PlayedGames.Services.AuthStateService AuthState
 
 <PageTitle>Sign In — HMGHIP</PageTitle>
 
@@ -66,5 +67,9 @@
     private string _email = "";
     private string _password = "";
 
-    private void ContinueAsGuest() => Nav.NavigateTo("");
+    private void ContinueAsGuest()
+    {
+        AuthState.SignInAsGuest();
+        Nav.NavigateTo("");
+    }
 }
