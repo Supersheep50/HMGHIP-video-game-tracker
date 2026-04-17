@@ -352,36 +352,95 @@ html, body {
 
 /* Card body */
 .card-body {
-    padding: 1rem !important;
+    padding: 0.85rem 1rem 0.75rem !important;
     display: flex;
     flex-direction: column;
+    gap: 0.45rem;
     flex: 1;
 }
 
+/* Name (left) + score badge (right) */
+.card-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
 .game-name {
-    font-weight: 600;
-    font-size: 0.92rem;
-    line-height: 1.35;
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.3;
     color: var(--text-primary);
-    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0 0 0.2rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin: 0;
+}
+
+.card-score {
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.card-score-sub {
+    font-weight: 400;
+    opacity: 0.55;
+    font-size: 0.7rem;
+}
+
+/* Stars on their own line */
+.card-stars-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+}
+
+/* Developer (left) + platform chip (right) */
+.card-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
 }
 
 .game-developer {
     color: var(--text-muted);
     font-size: 0.74rem;
-    margin: 0 0 0.75rem 0;
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* HLTB (left) + hours played (right) */
+.card-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-top: 0.3rem;
+    border-top: 1px solid var(--border);
+}
+
+.card-played {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .card-tags {
     display: flex;
-    flex-wrap: wrap;
     gap: 0.3rem;
-    margin-bottom: 0.75rem;
-    flex: 1;
-    align-content: flex-start;
 }
 
 .tag-chip {
@@ -394,24 +453,15 @@ html, body {
     color: var(--text-muted) !important;
 }
 
-.card-footer-row {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding-top: 0.6rem;
-    border-top: 1px solid var(--border);
-    margin-top: auto;
-}
-
 .hours-icon {
     color: var(--text-muted) !important;
-    font-size: 0.9rem !important;
+    font-size: 0.85rem !important;
     opacity: 0.7;
 }
 
 .hours-text {
     color: var(--text-muted);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
 }
 
 /* =========================================
@@ -1228,14 +1278,7 @@ html, body {
 /* =========================================
    Game Card — Stars, HLTB, Actions
    ========================================= */
-.card-star-row {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.35rem;
-}
-
-.card-stars {
+.card-stars-wrap {
     display: flex;
     align-items: center;
     gap: 1px;
@@ -1274,7 +1317,6 @@ html, body {
     gap: 0.3rem;
     color: var(--text-muted);
     font-size: 0.72rem;
-    margin-bottom: 0.4rem;
 }
 
 .card-hltb svg {
@@ -1295,10 +1337,8 @@ html, body {
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    padding: 0.7rem 0.25rem;
-    background: rgba(124, 58, 237, 0.12);
+    padding: 0.75rem 0.25rem;
     border: none;
-    color: #a78bfa;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -1316,14 +1356,34 @@ html, body {
     border-right: 1px solid var(--border);
 }
 
-.card-action-btn:hover {
-    background: rgba(124, 58, 237, 0.22);
-    color: #c4b5fd;
+/* Playing — green */
+.card-action-playing {
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ade80;
 }
 
-.card-action-btn.action-active {
+.card-action-playing:hover {
+    background: rgba(34, 197, 94, 0.22);
+}
+
+.card-action-playing.action-active {
+    background: rgba(34, 197, 94, 0.3);
+    color: #86efac;
+}
+
+/* Finished — purple */
+.card-action-finished {
+    background: rgba(124, 58, 237, 0.12);
+    color: #a78bfa;
+}
+
+.card-action-finished:hover {
+    background: rgba(124, 58, 237, 0.22);
+}
+
+.card-action-finished.action-active {
     background: rgba(124, 58, 237, 0.35);
-    color: #ede9fe;
+    color: #c4b5fd;
 }
 
 .action-tick {
