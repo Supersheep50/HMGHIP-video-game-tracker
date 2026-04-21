@@ -24,7 +24,7 @@
             {
                 <img src="@AuthState.CurrentUser.PhotoUrl" class="setup-avatar" alt="avatar" />
             }
-            <h1 class="setup-title">Welcome@(AuthState.CurrentUser?.DisplayName != null ? $", {AuthState.CurrentUser.DisplayName.Split(' ')[0]}!" : "!")</h1>
+            <h1 class="setup-title">Welcome, @_firstName!</h1>
             <p class="setup-subtitle">Choose a username for your profile</p>
 
             <div class="setup-field">
@@ -124,6 +124,7 @@
 }
 
 @code {
+    private string _firstName => AuthState.CurrentUser?.DisplayName?.Split(new[]{' '}, 2)[0] ?? "there";
     private int    _step          = 1;
     private string _username      = "";
     private string? _usernameError = null;
