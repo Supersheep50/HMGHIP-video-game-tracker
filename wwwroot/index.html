@@ -288,6 +288,15 @@
             const snap = await getDoc(doc(db, 'users', userId));
             return snap.exists() ? (snap.data().top3 ?? [null, null, null]) : [null, null, null];
         };
+
+        window.firestoreSaveProfile = async (userId, username) => {
+            await setDoc(doc(db, 'users', userId), { username, profileComplete: true }, { merge: true });
+        };
+
+        window.firestoreGetProfile = async (userId) => {
+            const snap = await getDoc(doc(db, 'users', userId));
+            return snap.exists() ? snap.data() : null;
+        };
     </script>
 </body>
 </html>

@@ -1782,3 +1782,313 @@ html, body {
     font-size: 0.72rem;
     color: var(--text-muted);
 }
+
+/* =========================================
+   Welcome / Login Screen
+   ========================================= */
+.welcome-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.18) 0%, transparent 65%), var(--bg-primary);
+    gap: 2.5rem;
+}
+
+.welcome-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+}
+
+.welcome-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 20px rgba(167,139,250,0.5));
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.welcome-sub {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.welcome-desc {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0.75rem 0 0;
+    max-width: 280px;
+    line-height: 1.6;
+}
+
+.welcome-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 320px;
+}
+
+.welcome-google-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.5rem;
+    background: #fff;
+    color: #1f1f1f;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.welcome-google-btn:hover  { opacity: 0.92; transform: translateY(-1px); }
+.welcome-google-btn:active { transform: scale(0.98); }
+.welcome-google-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+.welcome-google-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.welcome-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(0,0,0,0.15);
+    border-top-color: #1f1f1f;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.welcome-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.welcome-divider::before,
+.welcome-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.welcome-guest-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.15s;
+}
+
+.welcome-guest-btn:hover { color: var(--accent-light); }
+
+.welcome-guest-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.welcome-guest-note {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin: 0;
+    text-align: center;
+}
+
+/* =========================================
+   Setup / Onboarding
+   ========================================= */
+.setup-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1.5rem 4rem;
+    background: var(--bg-primary);
+    gap: 1.5rem;
+}
+
+.setup-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 0.5rem;
+}
+
+.setup-step {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: 2px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.setup-step.step-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.setup-step-line {
+    width: 40px;
+    height: 2px;
+    background: var(--border);
+}
+
+.setup-card {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    text-align: center;
+}
+
+.setup-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    object-fit: cover;
+    margin-bottom: 0.25rem;
+}
+
+.setup-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.setup-subtitle {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.setup-field {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0 1rem;
+    transition: border-color 0.15s;
+}
+
+.setup-field:focus-within {
+    border-color: var(--accent);
+}
+
+.setup-field-prefix {
+    color: var(--accent-light);
+    font-weight: 700;
+    font-size: 1rem;
+    margin-right: 0.25rem;
+}
+
+.setup-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    padding: 0.8rem 0;
+}
+
+.setup-input::placeholder { color: var(--text-muted); }
+
+.setup-error {
+    font-size: 0.78rem;
+    color: #f87171;
+    margin: 0;
+}
+
+.setup-next-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.85rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+    margin-top: 0.5rem;
+}
+
+.setup-next-btn:hover    { opacity: 0.9; transform: translateY(-1px); }
+.setup-next-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.setup-next-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.setup-skip-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: color 0.15s;
+}
+
+.setup-skip-btn:hover { color: var(--text-primary); }

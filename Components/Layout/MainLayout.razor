@@ -33,7 +33,7 @@
 </div>
 
 @code {
-    private static readonly string[] AuthRoutes = ["/login", "/logout", "/auth/"];
+    private static readonly string[] AuthRoutes = ["/login", "/logout", "/auth/", "/setup"];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -54,6 +54,16 @@
         var onAuthPage = AuthRoutes.Any(r => path.StartsWith(r, StringComparison.OrdinalIgnoreCase));
 
         if (!AuthState.IsAuthenticated && !onAuthPage)
+        {
             Nav.NavigateTo("login", replace: true);
+            return;
+        }
+
+        if (AuthState.CurrentUser != null && !onAuthPage)
+        {
+            var profile = await Firebase.GetProfileAsync(AuthState.CurrentUser.Uid);
+            if (profile == null || !profile.IsComplete)
+                Nav.NavigateTo("setup", replace: true);
+        }
     }
 }

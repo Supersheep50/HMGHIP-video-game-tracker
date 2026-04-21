@@ -1,0 +1,218 @@
+@page "/setup"
+@layout AuthLayout
+@inject NavigationManager Nav
+@inject AuthStateService AuthState
+@inject FirebaseService Firebase
+@inject PlayedGames.Services.RawgService RawgService
+
+<PageTitle>Set Up Your Profile — HMGHIP</PageTitle>
+
+<div class="setup-page">
+
+    <!-- Step indicator -->
+    <div class="setup-steps">
+        <div class="setup-step @(_step >= 1 ? "step-active" : "")">1</div>
+        <div class="setup-step-line"></div>
+        <div class="setup-step @(_step >= 2 ? "step-active" : "")">2</div>
+    </div>
+
+    @if (_step == 1)
+    {
+        <!-- Step 1: Username -->
+        <div class="setup-card anim-fade-up">
+            @if (AuthState.CurrentUser?.PhotoUrl != null)
+            {
+                <img src="@AuthState.CurrentUser.PhotoUrl" class="setup-avatar" alt="avatar" />
+            }
+            <h1 class="setup-title">Welcome@(AuthState.CurrentUser?.DisplayName != null ? $", {AuthState.CurrentUser.DisplayName.Split(' ')[0]}!" : "!")</h1>
+            <p class="setup-subtitle">Choose a username for your profile</p>
+
+            <div class="setup-field">
+                <span class="setup-field-prefix">@</span>
+                <input class="setup-input"
+                       type="text"
+                       placeholder="yourgamertag"
+                       maxlength="20"
+                       @bind="_username"
+                       @bind:event="oninput" />
+            </div>
+            @if (_usernameError != null)
+            {
+                <p class="setup-error">@_usernameError</p>
+            }
+
+            <button class="setup-next-btn" @onclick="GoToStep2" disabled="@string.IsNullOrWhiteSpace(_username)">
+                Next
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Step 2: Top 3 -->
+        <div class="setup-card anim-fade-up">
+            <h1 class="setup-title">Pick Your Top 3</h1>
+            <p class="setup-subtitle">Your all-time favourite games — you can change these any time</p>
+
+            <div class="top3-grid" style="margin: 1.5rem 0;">
+                @for (int i = 0; i < 3; i++)
+                {
+                    var idx = i;
+                    var slot = _slots[idx];
+                    <div class="top3-slot @(slot == null ? "top3-slot-empty" : "")" @onclick="() => OpenPicker(idx)">
+                        @if (slot == null)
+                        {
+                            <div class="top3-rank">#@(idx + 1)</div>
+                            <svg class="top3-plus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                            <span class="top3-add-label">Add Game</span>
+                        }
+                        else
+                        {
+                            <div class="top3-art" style="@(slot.GameArtUrl != null ? $"background-image:url('{slot.GameArtUrl}')" : $"background:{GetGenreGradient(slot.Genre)}")"></div>
+                            <div class="top3-info-overlay">
+                                <span class="top3-rank-badge">#@(idx + 1)</span>
+                                <p class="top3-game-name">@slot.Name</p>
+                            </div>
+                            <button class="top3-remove" @onclick:stopPropagation @onclick="() => _slots[idx] = null">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
+            <button class="setup-next-btn" @onclick="FinishSetup" disabled="@_saving">
+                @(_saving ? "Saving..." : "Let's Go!")
+                @if (!_saving)
+                {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                }
+            </button>
+            <button class="setup-skip-btn" @onclick="FinishSetup">Skip for now</button>
+        </div>
+    }
+
+</div>
+
+@if (_pickerOpen)
+{
+    <div class="picker-backdrop" @onclick="() => _pickerOpen = false"></div>
+    <div class="picker-sheet">
+        <div class="drawer-handle-bar"></div>
+        <div class="picker-header"><span class="picker-title">Choose a Game</span></div>
+        <div class="picker-search-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input class="picker-search-input" type="search" placeholder="Search games..." @bind="_search" @bind:event="oninput" autofocus />
+        </div>
+        <div class="picker-list">
+            @foreach (var game in PickerGames)
+            {
+                var g = game;
+                <button class="picker-item" @onclick="() => SelectGame(g)">
+                    <div class="picker-item-art" style="@(g.GameArtUrl != null ? $"background-image:url('{g.GameArtUrl}')" : $"background:{GetGenreGradient(g.Genre)}")"></div>
+                    <div class="picker-item-info">
+                        <span class="picker-item-name">@g.Name</span>
+                        <span class="picker-item-dev">@g.Developer</span>
+                    </div>
+                    <span class="picker-item-score">@g.Review.ToString("F1")</span>
+                </button>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private int    _step          = 1;
+    private string _username      = "";
+    private string? _usernameError = null;
+    private bool   _saving        = false;
+    private bool   _pickerOpen    = false;
+    private int    _pickerTarget  = 0;
+    private string _search        = "";
+    private readonly Games?[] _slots = new Games?[3];
+
+    private readonly List<Games> _allGames = new()
+    {
+        new Games { Name = "Baldur's Gate 3",                           Genre = "RPG",              System = "PC",              Developer = "Larian Studios",         HoursPlayed = 120, Review = 10.0, HowLongToBeat = 100 },
+        new Games { Name = "Elden Ring",                                Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",           HoursPlayed = 95,  Review = 9.5,  HowLongToBeat = 60  },
+        new Games { Name = "God of War: Ragnarök",                      Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Santa Monica Studio",    HoursPlayed = 40,  Review = 9.5,  HowLongToBeat = 26  },
+        new Games { Name = "The Legend of Zelda: Tears of the Kingdom", Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 120, Review = 10.0, HowLongToBeat = 50  },
+        new Games { Name = "The Witcher 3: Wild Hunt",                  Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",         HoursPlayed = 180, Review = 10.0, HowLongToBeat = 52  },
+        new Games { Name = "God of War",                                Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Santa Monica Studio",    HoursPlayed = 75,  Review = 9.5,  HowLongToBeat = 21  },
+        new Games { Name = "Red Dead Redemption 2",                     Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Rockstar Games",         HoursPlayed = 110, Review = 9.5,  HowLongToBeat = 50  },
+        new Games { Name = "Hollow Knight",                             Genre = "Metroidvania",     System = "PC",              Developer = "Team Cherry",            HoursPlayed = 45,  Review = 9.0,  HowLongToBeat = 42  },
+        new Games { Name = "Hades",                                     Genre = "Roguelike",        System = "PC",              Developer = "Supergiant Games",       HoursPlayed = 55,  Review = 9.5,  HowLongToBeat = 22  },
+        new Games { Name = "Persona 5 Royal",                           Genre = "JRPG",             System = "PlayStation 4",   Developer = "Atlus",                  HoursPlayed = 120, Review = 10.0, HowLongToBeat = 103 },
+        new Games { Name = "Breath of the Wild",                        Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 150, Review = 10.0, HowLongToBeat = 50  },
+        new Games { Name = "Disco Elysium",                             Genre = "RPG",              System = "PC",              Developer = "ZA/UM",                  HoursPlayed = 38,  Review = 9.0,  HowLongToBeat = 25  },
+        new Games { Name = "Mass Effect 2",                             Genre = "RPG",              System = "PC",              Developer = "BioWare",                HoursPlayed = 42,  Review = 10.0, HowLongToBeat = 25  },
+        new Games { Name = "Bloodborne",                                Genre = "Action RPG",       System = "PlayStation 4",   Developer = "FromSoftware",           HoursPlayed = 60,  Review = 9.5,  HowLongToBeat = 35  },
+        new Games { Name = "Divinity: Original Sin 2",                  Genre = "RPG",              System = "PC",              Developer = "Larian Studios",         HoursPlayed = 160, Review = 9.5,  HowLongToBeat = 60  },
+        new Games { Name = "Final Fantasy XIV",                         Genre = "MMORPG",           System = "PC",              Developer = "Square Enix",            HoursPlayed = 300, Review = 9.0,  HowLongToBeat = 120 },
+        new Games { Name = "It Takes Two",                              Genre = "Action",           System = "PC",              Developer = "Hazelight Studios",      HoursPlayed = 12,  Review = 9.5,  HowLongToBeat = 12  },
+        new Games { Name = "Ghost of Tsushima",                         Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Sucker Punch",           HoursPlayed = 50,  Review = 9.0,  HowLongToBeat = 26  },
+        new Games { Name = "Hades",                                     Genre = "Roguelike",        System = "PC",              Developer = "Supergiant Games",       HoursPlayed = 55,  Review = 9.5,  HowLongToBeat = 22  },
+        new Games { Name = "Sekiro: Shadows Die Twice",                 Genre = "Action",           System = "PC",              Developer = "FromSoftware",           HoursPlayed = 65,  Review = 8.5,  HowLongToBeat = 30  },
+        new Games { Name = "Stardew Valley",                            Genre = "Simulation",       System = "PC",              Developer = "ConcernedApe",           HoursPlayed = 130, Review = 8.5,  HowLongToBeat = 55  },
+        new Games { Name = "Cyberpunk 2077",                            Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",         HoursPlayed = 85,  Review = 8.0,  HowLongToBeat = 25  },
+        new Games { Name = "Returnal",                                  Genre = "Roguelike",        System = "PlayStation 5",   Developer = "Housemarque",            HoursPlayed = 35,  Review = 8.5,  HowLongToBeat = 15  },
+        new Games { Name = "Alan Wake 2",                               Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",   HoursPlayed = 20,  Review = 8.5,  HowLongToBeat = 15  },
+        new Games { Name = "Vampire Survivors",                         Genre = "Roguelike",        System = "PC",              Developer = "Poncle",                 HoursPlayed = 25,  Review = 8.5,  HowLongToBeat = 10  },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tasks = _allGames.Select(async game =>
+        {
+            game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
+            await InvokeAsync(StateHasChanged);
+        });
+        await Task.WhenAll(tasks);
+    }
+
+    private IEnumerable<Games> PickerGames => _allGames
+        .Where(g => string.IsNullOrWhiteSpace(_search) ||
+                    (g.Name?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false))
+        .OrderByDescending(g => g.Review);
+
+    private void GoToStep2()
+    {
+        _username = _username.Trim().ToLower().Replace(" ", "");
+        if (_username.Length < 3) { _usernameError = "Username must be at least 3 characters"; return; }
+        _usernameError = null;
+        _step = 2;
+    }
+
+    private void OpenPicker(int idx) { _pickerTarget = idx; _search = ""; _pickerOpen = true; }
+
+    private void SelectGame(Games game) { _slots[_pickerTarget] = game; _pickerOpen = false; }
+
+    private async Task FinishSetup()
+    {
+        if (AuthState.CurrentUser == null) { Nav.NavigateTo("login", replace: true); return; }
+        _saving = true;
+        await Firebase.SaveProfileAsync(AuthState.CurrentUser.Uid, _username);
+        var top3 = _slots.Select(s => s?.Name).ToList();
+        if (top3.Any(t => t != null))
+            await Firebase.SaveTop3Async(AuthState.CurrentUser.Uid, top3);
+        Nav.NavigateTo("", replace: true);
+    }
+
+    private string GetGenreGradient(string? genre) => genre switch
+    {
+        "Action RPG"       => "linear-gradient(145deg, #1e0a3c 0%, #6b21a8 100%)",
+        "RPG"              => "linear-gradient(145deg, #0d1b4b 0%, #1d4ed8 100%)",
+        "Action-Adventure" => "linear-gradient(145deg, #1c0505 0%, #991b1b 100%)",
+        "JRPG"             => "linear-gradient(145deg, #3b0000 0%, #dc2626 100%)",
+        "Roguelike"        => "linear-gradient(145deg, #0a0a1a 0%, #4338ca 100%)",
+        "Metroidvania"     => "linear-gradient(145deg, #000d10 0%, #0e7490 100%)",
+        "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
+        "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
+        "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
+        "Platformer"       => "linear-gradient(145deg, #0a1a2a 0%, #0369a1 100%)",
+        "Racing"           => "linear-gradient(145deg, #1a0a00 0%, #d97706 100%)",
+        _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
+    };
+}

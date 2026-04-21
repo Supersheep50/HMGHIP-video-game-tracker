@@ -89,6 +89,27 @@ namespace PlayedGames.Services
             catch { return new List<string?> { null, null, null }; }
         }
 
+        // ── Profile ───────────────────────────────────────────────────────────
+
+        public async Task SaveProfileAsync(string userId, string username)
+        {
+            try { await _js.InvokeVoidAsync("firestoreSaveProfile", userId, username); } catch { }
+        }
+
+        public async Task<UserProfile?> GetProfileAsync(string userId)
+        {
+            try
+            {
+                var result = await _js.InvokeAsync<JsonElement>("firestoreGetProfile", userId);
+                if (result.ValueKind == JsonValueKind.Null) return null;
+                return new UserProfile
+                {
+                    Username = result.TryGetProperty("username", out var u) ? u.GetString() : null,
+                };
+            }
+            catch { return null; }
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static FirebaseUser ParseUser(JsonElement el) => new()
@@ -106,5 +127,11 @@ namespace PlayedGames.Services
         public string? DisplayName { get; set; }
         public string? Email       { get; set; }
         public string? PhotoUrl    { get; set; }
+    }
+
+    public class UserProfile
+    {
+        public string? Username { get; set; }
+        public bool IsComplete => !string.IsNullOrWhiteSpace(Username);
     }
 }
