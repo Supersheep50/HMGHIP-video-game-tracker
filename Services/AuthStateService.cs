@@ -1,14 +1,31 @@
 namespace PlayedGames.Services;
 
-/// <summary>
-/// Tracks whether the user has authenticated (or chosen guest) for this session.
-/// Replaced by real Firebase Auth when that is wired up.
-/// </summary>
 public class AuthStateService
 {
-    public bool IsAuthenticated { get; private set; }
+    public bool          IsAuthenticated { get; private set; }
+    public FirebaseUser? CurrentUser     { get; private set; }
+    public bool          IsGuest         => IsAuthenticated && CurrentUser == null;
 
-    public void SignInAsGuest()  => IsAuthenticated = true;
-    public void SignIn()         => IsAuthenticated = true;
-    public void SignOut()        => IsAuthenticated = false;
+    public event Action? OnChange;
+
+    public void SignInWithUser(FirebaseUser user)
+    {
+        CurrentUser     = user;
+        IsAuthenticated = true;
+        OnChange?.Invoke();
+    }
+
+    public void SignInAsGuest()
+    {
+        CurrentUser     = null;
+        IsAuthenticated = true;
+        OnChange?.Invoke();
+    }
+
+    public void SignOut()
+    {
+        CurrentUser     = null;
+        IsAuthenticated = false;
+        OnChange?.Invoke();
+    }
 }

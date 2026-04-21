@@ -11,5 +11,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddMudServices();
 builder.Services.AddHttpClient<RawgService>();
 builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddScoped<FirebaseService>();
 
 await builder.Build().RunAsync();
