@@ -1,5 +1,7 @@
 @page "/library"
 @inject PlayedGames.Services.RawgService RawgService
+@inject FirebaseService Firebase
+@inject AuthStateService AuthState
 
 <PageTitle>Games Library — HMGHIP</PageTitle>
 
@@ -187,12 +189,22 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var tasks = GamesList.Select(async game =>
+        var artTasks = GamesList.Select(async game =>
         {
             game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
             await InvokeAsync(StateHasChanged);
         });
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(artTasks);
+
+        if (AuthState.CurrentUser != null)
+        {
+            var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
+            foreach (var (name, status) in statuses)
+            {
+                if (status == "playing")       _playing.Add(name);
+                else if (status == "finished") _finished.Add(name);
+            }
+        }
     }
 
     private IEnumerable<Games> FilteredGames =>
@@ -207,16 +219,28 @@
     private readonly HashSet<string> _playing  = new();
     private readonly HashSet<string> _finished = new();
 
-    private void TogglePlaying(Games game)
+    private async Task TogglePlaying(Games game)
     {
         if (!_playing.Add(game.Name!)) _playing.Remove(game.Name!);
         else _finished.Remove(game.Name!);
+
+        if (AuthState.CurrentUser != null)
+        {
+            var status = _playing.Contains(game.Name!) ? "playing" : "none";
+            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, game.Name!, status);
+        }
     }
 
-    private void ToggleFinished(Games game)
+    private async Task ToggleFinished(Games game)
     {
         if (!_finished.Add(game.Name!)) _finished.Remove(game.Name!);
         else _playing.Remove(game.Name!);
+
+        if (AuthState.CurrentUser != null)
+        {
+            var status = _finished.Contains(game.Name!) ? "finished" : "none";
+            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, game.Name!, status);
+        }
     }
 
     private static MarkupString RenderStars(double score)

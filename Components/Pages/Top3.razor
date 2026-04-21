@@ -1,5 +1,7 @@
 @page "/top3"
 @inject PlayedGames.Services.RawgService RawgService
+@inject FirebaseService Firebase
+@inject AuthStateService AuthState
 
 <PageTitle>Top 3 — HMGHIP</PageTitle>
 
@@ -118,12 +120,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var tasks = _allGames.Select(async game =>
+        var artTasks = _allGames.Select(async game =>
         {
             game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
             await InvokeAsync(StateHasChanged);
         });
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(artTasks);
+
+        if (AuthState.CurrentUser != null)
+        {
+            var saved = await Firebase.GetTop3Async(AuthState.CurrentUser.Uid);
+            for (int i = 0; i < 3; i++)
+            {
+                if (saved.Count > i && saved[i] != null)
+                    _slots[i] = _allGames.FirstOrDefault(g => g.Name == saved[i]);
+            }
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private IEnumerable<Games> PickerGames => _allGames
@@ -140,13 +153,25 @@
 
     private void ClosePicker() => _pickerOpen = false;
 
-    private void SelectGame(Games game)
+    private async Task SelectGame(Games game)
     {
         _slots[_pickerTarget] = game;
         _pickerOpen = false;
+        await SaveTop3();
     }
 
-    private void RemoveSlot(int idx) => _slots[idx] = null;
+    private async Task RemoveSlot(int idx)
+    {
+        _slots[idx] = null;
+        await SaveTop3();
+    }
+
+    private async Task SaveTop3()
+    {
+        if (AuthState.CurrentUser != null)
+            await Firebase.SaveTop3Async(AuthState.CurrentUser.Uid,
+                _slots.Select(s => s?.Name).ToList());
+    }
 
     private string GetGenreGradient(string? genre) => genre switch
     {

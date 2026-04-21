@@ -1,6 +1,8 @@
 @page "/logout"
 @layout AuthLayout
 @inject NavigationManager Nav
+@inject FirebaseService Firebase
+@inject AuthStateService AuthState
 
 <PageTitle>Sign Out — HMGHIP</PageTitle>
 
@@ -18,9 +20,8 @@
         <p class="auth-subtitle">Your game diary will be here when you get back.</p>
 
         <div class="auth-form">
-            <button class="auth-submit-btn auth-submit-danger" disabled>
+            <button class="auth-submit-btn auth-submit-danger" @onclick="SignOut">
                 Sign Out
-                <span class="auth-coming-soon-tag">Soon</span>
             </button>
             <button class="auth-cancel-btn" @onclick='() => Nav.NavigateTo("")'>
                 Cancel — take me back
@@ -29,3 +30,12 @@
 
     </div>
 </div>
+
+@code {
+    private async Task SignOut()
+    {
+        await Firebase.SignOutAsync();
+        AuthState.SignOut();
+        Nav.NavigateTo("login", replace: true);
+    }
+}

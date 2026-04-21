@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
 @inject AuthStateService AuthState
+@inject FirebaseService Firebase
 @inject NavigationManager Nav
 
 <MudThemeProvider IsDarkMode="true" />
@@ -40,8 +41,15 @@
             try { await JS.InvokeVoidAsync("_appReady"); } catch { }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        if (!AuthState.IsAuthenticated)
+        {
+            var user = await Firebase.GetCurrentUserAsync();
+            if (user != null)
+                AuthState.SignInWithUser(user);
+        }
+
         var path = "/" + Nav.ToBaseRelativePath(Nav.Uri).TrimStart('/');
         var onAuthPage = AuthRoutes.Any(r => path.StartsWith(r, StringComparison.OrdinalIgnoreCase));
 
