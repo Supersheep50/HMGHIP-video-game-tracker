@@ -232,5 +232,62 @@
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+
+    <script type="module">
+        import { initializeApp }                                          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut,
+                 onAuthStateChanged }                                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc }                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+        const app  = initializeApp({
+            apiKey:            "AIzaSyCDLuGg9YNc4rt2xqn2uza6uy1cBLmAnZ0",
+            authDomain:        "hmghip.firebaseapp.com",
+            projectId:         "hmghip",
+            storageBucket:     "hmghip.firebasestorage.app",
+            messagingSenderId: "1074892961768",
+            appId:             "1:1074892961768:web:a79783c2c594c234c9d65d"
+        });
+
+        const auth = getAuth(app);
+        const db   = getFirestore(app);
+
+        const serialize = u => ({
+            uid: u.uid, displayName: u.displayName,
+            email: u.email, photoURL: u.photoURL
+        });
+
+        window.firebaseSignInGoogle = async () => {
+            const result = await signInWithPopup(auth, new GoogleAuthProvider());
+            return serialize(result.user);
+        };
+
+        window.firebaseSignOut = () => signOut(auth);
+
+        window.firebaseGetCurrentUser = () => new Promise(resolve => {
+            const unsub = onAuthStateChanged(auth, user => {
+                unsub();
+                resolve(user ? serialize(user) : null);
+            });
+        });
+
+        window.firestoreSaveGameStatus = async (userId, gameName, status) => {
+            await setDoc(doc(db, 'users', userId),
+                { gameStatuses: { [gameName]: status } }, { merge: true });
+        };
+
+        window.firestoreGetGameStatuses = async (userId) => {
+            const snap = await getDoc(doc(db, 'users', userId));
+            return snap.exists() ? (snap.data().gameStatuses ?? {}) : {};
+        };
+
+        window.firestoreSaveTop3 = async (userId, gameNames) => {
+            await setDoc(doc(db, 'users', userId), { top3: gameNames }, { merge: true });
+        };
+
+        window.firestoreGetTop3 = async (userId) => {
+            const snap = await getDoc(doc(db, 'users', userId));
+            return snap.exists() ? (snap.data().top3 ?? [null, null, null]) : [null, null, null];
+        };
+    </script>
 </body>
 </html>
