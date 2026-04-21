@@ -1,4 +1,4 @@
-/* Manifest version: i4zeEVLA */
+/* Manifest version: +e2dAJrX */
 // Production service worker — caches app shell for offline/installable PWA support.
 self.importScripts('./service-worker-assets.js');
 
