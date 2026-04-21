@@ -2092,3 +2092,142 @@ html, body {
 }
 
 .setup-skip-btn:hover { color: var(--text-primary); }
+
+/* =========================================
+   Onboarding Screen (Login / Welcome)
+   ========================================= */
+.onboard-screen {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: env(safe-area-inset-top, 2.5rem) 1.75rem env(safe-area-inset-bottom, 2.5rem);
+    padding-top: max(env(safe-area-inset-top), 3rem);
+    padding-bottom: max(env(safe-area-inset-bottom), 2.5rem);
+    background: var(--bg-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.onboard-glow {
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 480px;
+    height: 480px;
+    background: radial-gradient(circle, rgba(124,58,237,0.22) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.onboard-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    position: relative;
+    z-index: 1;
+}
+
+.onboard-brand {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.onboard-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.onboard-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.onboard-sub {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.onboard-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 340px;
+    position: relative;
+    z-index: 1;
+}
+
+.onboard-google-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.95rem 1.5rem;
+    background: #fff;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+}
+
+.onboard-google-btn:hover  { opacity: 0.93; transform: translateY(-1px); }
+.onboard-google-btn:active { transform: scale(0.98); }
+.onboard-google-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.onboard-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(0,0,0,0.15);
+    border-top-color: #1a1a1a;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+.onboard-guest-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    transition: color 0.15s;
+    letter-spacing: 0.01em;
+}
+
+.onboard-guest-btn:hover { color: var(--text-primary); }
+
+.onboard-guest-note {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    opacity: 0.55;
+    margin: 0;
+    text-align: center;
+    letter-spacing: 0.02em;
+}
