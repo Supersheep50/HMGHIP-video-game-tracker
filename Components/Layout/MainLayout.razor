@@ -2,6 +2,7 @@
 @inject IJSRuntime JS
 @inject AuthStateService AuthState
 @inject FirebaseService Firebase
+@inject RawgService RawgService
 @inject NavigationManager Nav
 
 <MudThemeProvider IsDarkMode="true" />
@@ -16,8 +17,52 @@
         <svg class="global-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
         </svg>
-        <input type="search" class="global-search-input" placeholder="Search games..." />
+        <input type="search" class="global-search-input"
+               placeholder="Search games..."
+               value="@_query" @oninput="OnQueryInput" />
+        @if (_searching)
+        {
+            <span class="global-search-spinner" aria-hidden="true"></span>
+        }
+        else if (!string.IsNullOrEmpty(_query))
+        {
+            <button class="global-search-clear" @onclick="ClearSearch" aria-label="Clear">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+        }
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(_query) && !_searching && _results.Count == 0 && _searched)
+    {
+        <div class="global-search-results">
+            <div class="global-search-empty">No games found for "@_query"</div>
+        </div>
+    }
+    else if (_results.Count > 0)
+    {
+        <div class="global-search-results">
+            @foreach (var r in _results)
+            {
+                <button class="global-search-result" @onclick="() => OpenGame(r)">
+                    @if (!string.IsNullOrEmpty(r.ArtUrl))
+                    {
+                        <img src="@r.ArtUrl" class="global-search-result-img" alt="" />
+                    }
+                    else
+                    {
+                        <div class="global-search-result-img global-search-result-noimg"></div>
+                    }
+                    <div class="global-search-result-text">
+                        <div class="global-search-result-name">@r.Name</div>
+                        @if (!string.IsNullOrEmpty(r.Genre))
+                        {
+                            <div class="global-search-result-genre">@r.Genre</div>
+                        }
+                    </div>
+                </button>
+            }
+        </div>
+    }
 </div>
 
 <div class="app-shell">
@@ -25,6 +70,100 @@
 </div>
 
 <BottomTabBar />
+
+@if (_open != null)
+{
+    <div class="popup-overlay" @onclick="CloseDetail">
+        <div class="popup-sheet game-detail-sheet" @onclick:stopPropagation>
+            <div class="popup-handle-bar"></div>
+
+            @if (_mode == "actions")
+            {
+                <div class="game-detail-art" style="background: @GenreGradient(_open.Genre)">
+                    @if (!string.IsNullOrEmpty(_open.ArtUrl))
+                    {
+                        <img src="@_open.ArtUrl" alt="@_open.Name" class="game-detail-art-img" />
+                    }
+                </div>
+                <p class="popup-game-name">@_open.Name</p>
+                @if (!string.IsNullOrEmpty(_open.Genre))
+                {
+                    <p class="popup-genre">@_open.Genre</p>
+                }
+
+                @if (AuthState.CurrentUser == null)
+                {
+                    <div class="popup-signin-note">Sign in to track this game.</div>
+                }
+                else
+                {
+                    <div class="card-actions detail-actions">
+                        <button class="card-action-btn card-action-playing @(_isPlaying ? "action-active" : "")"
+                                @onclick="TogglePlaying" disabled="@_saving">
+                            @if (_isPlaying)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            }
+                            else
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            }
+                            Playing
+                        </button>
+                        <button class="card-action-btn card-action-finished @(_isFinished ? "action-active" : "")"
+                                @onclick='() => _mode = "finished"' disabled="@_saving">
+                            @if (_isFinished)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            }
+                            else
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            }
+                            Finished
+                        </button>
+                        <button class="card-action-btn card-action-review @(_existingReview > 0 ? "action-active" : "")"
+                                @onclick='() => _mode = "review"' disabled="@_saving">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                            Review
+                        </button>
+                    </div>
+                }
+            }
+            else if (_mode == "finished")
+            {
+                <p class="popup-title">Mark as Finished</p>
+                <p class="popup-game-name">@_open.Name</p>
+                <MudNumericField @bind-Value="_hours" Label="Hours Played" Variant="Variant.Outlined"
+                                 Min="0.0" Step="0.5" Class="mb-4" FullWidth="true" />
+                <div class="popup-actions">
+                    <MudButton Variant="Variant.Text" OnClick='() => _mode = "actions"'>Back</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveFinished" Disabled="_saving">
+                        @(_saving ? "Saving..." : "Save")
+                    </MudButton>
+                </div>
+            }
+            else if (_mode == "review")
+            {
+                <p class="popup-title">Write a Review</p>
+                <p class="popup-game-name">@_open.Name</p>
+                <div class="star-rating-row">
+                    <MudRating @bind-SelectedValue="_stars" MaxValue="5" Color="Color.Warning" />
+                    <span class="star-score-label">@(_stars * 2) / 10</span>
+                </div>
+                <MudTextField @bind-Value="_reviewText" Label="Your thoughts..." Lines="4"
+                              Variant="Variant.Outlined" Class="mb-4" FullWidth="true" />
+                <div class="popup-actions">
+                    <MudButton Variant="Variant.Text" OnClick='() => _mode = "actions"'>Back</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               OnClick="SaveReview" Disabled="@(_saving || _stars == 0)">
+                        @(_saving ? "Saving..." : "Save Review")
+                    </MudButton>
+                </div>
+            }
+        </div>
+    </div>
+}
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -34,6 +173,190 @@
 
 @code {
     private static readonly string[] AuthRoutes = ["/login", "/logout", "/auth/", "/setup"];
+
+    // Search state
+    private string _query = "";
+    private List<RawgSearchResult> _results = new();
+    private bool _searching;
+    private bool _searched;
+    private int _searchToken;
+
+    // Detail popup state
+    private RawgSearchResult? _open;
+    private string _mode = "actions";
+    private bool _isPlaying;
+    private bool _isFinished;
+    private double _existingReview;
+    private double _hours;
+    private int _stars = 3;
+    private string _reviewText = "";
+    private bool _saving;
+
+    // ── Search ────────────────────────────────────────────────────────────
+
+    private async Task OnQueryInput(ChangeEventArgs e)
+    {
+        _query = e.Value?.ToString() ?? "";
+        var token = ++_searchToken;
+
+        if (string.IsNullOrWhiteSpace(_query))
+        {
+            _results = new();
+            _searching = false;
+            _searched = false;
+            return;
+        }
+
+        await Task.Delay(300);
+        if (token != _searchToken) return;
+
+        _searching = true;
+        StateHasChanged();
+
+        var res = await RawgService.SearchGamesAsync(_query);
+        if (token != _searchToken) return;
+
+        _results = res;
+        _searching = false;
+        _searched = true;
+        StateHasChanged();
+    }
+
+    private void ClearSearch()
+    {
+        _query = "";
+        _results = new();
+        _searching = false;
+        _searched = false;
+        _searchToken++;
+    }
+
+    // ── Detail popup ──────────────────────────────────────────────────────
+
+    private async Task OpenGame(RawgSearchResult r)
+    {
+        _open = r;
+        _mode = "actions";
+        _isPlaying = false;
+        _isFinished = false;
+        _existingReview = 0;
+        _hours = 0;
+        _stars = 3;
+        _reviewText = "";
+
+        ClearSearch();
+
+        if (AuthState.CurrentUser == null) return;
+
+        var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
+        if (statuses.TryGetValue(r.Name, out var status))
+        {
+            _isPlaying  = status == "playing";
+            _isFinished = status == "finished";
+        }
+
+        var games = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
+        var existing = games.FirstOrDefault(g =>
+            string.Equals(g.Name, r.Name, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+        {
+            _hours          = existing.HoursPlayed;
+            _existingReview = existing.Review;
+            if (existing.Review > 0) _stars = (int)Math.Round(existing.Review / 2.0);
+            _reviewText     = existing.ReviewText ?? "";
+        }
+        StateHasChanged();
+    }
+
+    private void CloseDetail()
+    {
+        _open = null;
+        _mode = "actions";
+    }
+
+    private async Task<List<Games>> EnsureSavedAsync()
+    {
+        var games = await Firebase.GetGamesAsync(AuthState.CurrentUser!.Uid);
+        if (!games.Any(g => string.Equals(g.Name, _open!.Name, StringComparison.OrdinalIgnoreCase)))
+        {
+            games.Add(new Games
+            {
+                Name       = _open!.Name,
+                GameArtUrl = _open.ArtUrl,
+                Genre      = _open.Genre ?? "Other",
+                Year       = DateTime.Now.Year,
+            });
+        }
+        return games;
+    }
+
+    private async Task TogglePlaying()
+    {
+        if (_open == null || AuthState.CurrentUser == null) return;
+        _saving = true;
+
+        _isPlaying = !_isPlaying;
+        if (_isPlaying) _isFinished = false;
+
+        var status = _isPlaying ? "playing" : "none";
+        await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _open.Name, status);
+
+        var games = await EnsureSavedAsync();
+        await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
+
+        _saving = false;
+    }
+
+    private async Task SaveFinished()
+    {
+        if (_open == null || AuthState.CurrentUser == null) return;
+        _saving = true;
+
+        var games = await EnsureSavedAsync();
+        var game = games.First(g => string.Equals(g.Name, _open.Name, StringComparison.OrdinalIgnoreCase));
+        game.HoursPlayed = _hours;
+        await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
+        await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _open.Name, "finished");
+
+        _isFinished = true;
+        _isPlaying  = false;
+        _mode = "actions";
+        _saving = false;
+    }
+
+    private async Task SaveReview()
+    {
+        if (_open == null || AuthState.CurrentUser == null) return;
+        _saving = true;
+
+        var games = await EnsureSavedAsync();
+        var game = games.First(g => string.Equals(g.Name, _open.Name, StringComparison.OrdinalIgnoreCase));
+        game.Review     = _stars * 2.0;
+        game.ReviewText = _reviewText;
+        await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
+
+        _existingReview = game.Review;
+        _mode = "actions";
+        _saving = false;
+    }
+
+    private static string GenreGradient(string? genre) => genre switch
+    {
+        "Action RPG"       => "linear-gradient(145deg, #1e0a3c 0%, #6b21a8 100%)",
+        "RPG"              => "linear-gradient(145deg, #0d1b4b 0%, #1d4ed8 100%)",
+        "Action-Adventure" => "linear-gradient(145deg, #1c0505 0%, #991b1b 100%)",
+        "JRPG"             => "linear-gradient(145deg, #3b0000 0%, #dc2626 100%)",
+        "Roguelike"        => "linear-gradient(145deg, #0a0a1a 0%, #4338ca 100%)",
+        "Metroidvania"     => "linear-gradient(145deg, #000d10 0%, #0e7490 100%)",
+        "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
+        "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
+        "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
+        "Platformer"       => "linear-gradient(145deg, #0a1a2a 0%, #0369a1 100%)",
+        "Racing"           => "linear-gradient(145deg, #1a0a00 0%, #d97706 100%)",
+        _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
+    };
+
+    // ── Auth bootstrap ────────────────────────────────────────────────────
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
