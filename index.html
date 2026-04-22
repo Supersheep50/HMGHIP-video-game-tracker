@@ -289,6 +289,15 @@
             return snap.exists() ? (snap.data().top3 ?? [null, null, null]) : [null, null, null];
         };
 
+        window.firestoreSaveGames = async (userId, games) => {
+            await setDoc(doc(db, 'users', userId), { games }, { merge: true });
+        };
+
+        window.firestoreGetGames = async (userId) => {
+            const snap = await getDoc(doc(db, 'users', userId));
+            return snap.exists() ? (snap.data().games ?? []) : [];
+        };
+
         window.firestoreSaveProfile = async (userId, username) => {
             await setDoc(doc(db, 'users', userId), { username, profileComplete: true }, { merge: true });
         };
