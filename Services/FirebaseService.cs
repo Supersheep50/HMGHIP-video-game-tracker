@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.JSInterop;
+using PlayedGames.Modals;
 
 namespace PlayedGames.Services
 {
@@ -66,6 +67,32 @@ namespace PlayedGames.Services
                 return dict;
             }
             catch { return new Dictionary<string, string>(); }
+        }
+
+        public async Task SaveGamesAsync(string userId, List<Games> games)
+        {
+            try { await _js.InvokeVoidAsync("firestoreSaveGames", userId, games); } catch { }
+        }
+
+        public async Task<List<Games>> GetGamesAsync(string userId)
+        {
+            try
+            {
+                var result = await _js.InvokeAsync<JsonElement>("firestoreGetGames", userId);
+                return result.EnumerateArray().Select(el => new Games
+                {
+                    Name          = el.TryGetProperty("Name",          out var n)  ? n.GetString()  : null,
+                    Genre         = el.TryGetProperty("Genre",         out var g)  ? g.GetString()  : null,
+                    System        = el.TryGetProperty("System",        out var s)  ? s.GetString()  : null,
+                    Developer     = el.TryGetProperty("Developer",     out var d)  ? d.GetString()  : null,
+                    HoursPlayed   = el.TryGetProperty("HoursPlayed",   out var h)  ? h.GetDouble()  : 0,
+                    Review        = el.TryGetProperty("Review",        out var r)  ? r.GetDouble()  : 0,
+                    HowLongToBeat = el.TryGetProperty("HowLongToBeat", out var lb) ? lb.GetDouble() : 0,
+                    GameArtUrl    = el.TryGetProperty("GameArtUrl",    out var a)  ? a.GetString()  : null,
+                    Year          = el.TryGetProperty("Year",          out var y)  ? y.GetInt32()   : DateTime.Now.Year,
+                }).ToList();
+            }
+            catch { return new List<Games>(); }
         }
 
         public async Task SaveTop3Async(string userId, List<string?> gameNames)

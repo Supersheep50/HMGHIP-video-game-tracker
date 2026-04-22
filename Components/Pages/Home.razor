@@ -123,32 +123,27 @@
 </MudContainer>
 
 @code {
-    private readonly List<Games> GamesList = new()
-    {
-        new Games { Name = "Baldur's Gate 3",                           Genre = "RPG",              System = "PC",              Developer = "Larian Studios",      HoursPlayed = 120, Review = 10.0, HowLongToBeat = 100 },
-        new Games { Name = "Elden Ring",                                Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",        HoursPlayed = 95,  Review = 9.5,  HowLongToBeat = 60  },
-        new Games { Name = "God of War: Ragnarök",                      Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Santa Monica Studio", HoursPlayed = 40,  Review = 9.5,  HowLongToBeat = 26  },
-        new Games { Name = "Alan Wake 2",                               Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",HoursPlayed = 20,  Review = 8.5,  HowLongToBeat = 15  },
-        new Games { Name = "The Legend of Zelda: Tears of the Kingdom", Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",            HoursPlayed = 120, Review = 10.0, HowLongToBeat = 50  },
-    };
+    private List<Games> GamesList = new();
 
     protected override async Task OnInitializedAsync()
     {
-        var artTasks = GamesList.Select(async game =>
+        if (AuthState.CurrentUser == null) return;
+
+        var allGames = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
+        GamesList = allGames.Where(g => g.Year == DateTime.Now.Year).ToList();
+
+        var artTasks = GamesList.Where(g => string.IsNullOrEmpty(g.GameArtUrl)).Select(async game =>
         {
             game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
             await InvokeAsync(StateHasChanged);
         });
         await Task.WhenAll(artTasks);
 
-        if (AuthState.CurrentUser != null)
+        var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
+        foreach (var (name, status) in statuses)
         {
-            var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
-            foreach (var (name, status) in statuses)
-            {
-                if (status == "playing")  _playing.Add(name);
-                else if (status == "finished") _finished.Add(name);
-            }
+            if (status == "playing")       _playing.Add(name);
+            else if (status == "finished") _finished.Add(name);
         }
     }
 

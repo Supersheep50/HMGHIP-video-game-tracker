@@ -2,6 +2,7 @@
 @inject PlayedGames.Services.RawgService RawgService
 @inject FirebaseService Firebase
 @inject AuthStateService AuthState
+@inject IDialogService DialogService
 
 <PageTitle>Games Library — HMGHIP</PageTitle>
 
@@ -40,6 +41,14 @@
                       Margin="Margin.Dense"
                       Class="search-input"
                       Immediate="true" />
+        @if (AuthState.CurrentUser != null)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="AddGameAsync" Class="add-game-btn">
+                Add Game
+            </MudButton>
+        }
     </div>
 
     <MudText Typo="Typo.body2" Class="results-count">
@@ -116,7 +125,15 @@
         }
     </MudGrid>
 
-    @if (!FilteredGames.Any())
+    @if (AuthState.CurrentUser == null)
+    {
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Filled.Lock" Style="font-size: 4rem; opacity: 0.3;" />
+            <MudText Typo="Typo.h6" Class="mt-3">Sign in to build your library</MudText>
+            <MudText Typo="Typo.body2">Your games are saved to your account</MudText>
+        </div>
+    }
+    else if (!FilteredGames.Any() && !string.IsNullOrWhiteSpace(_searchString))
     {
         <div class="empty-state">
             <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 4rem; opacity: 0.3;" />
@@ -124,86 +141,53 @@
             <MudText Typo="Typo.body2">Try adjusting your search</MudText>
         </div>
     }
+    else if (!GamesList.Any())
+    {
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Filled.SportsEsports" Style="font-size: 4rem; opacity: 0.3;" />
+            <MudText Typo="Typo.h6" Class="mt-3">No games yet</MudText>
+            <MudText Typo="Typo.body2">Hit <strong>Add Game</strong> to start your library</MudText>
+        </div>
+    }
 
 </MudContainer>
 
 @code {
     private string _searchString = "";
-
-    private readonly List<Games> GamesList = new()
-    {
-        // — 2026 —
-        new Games { Name = "Baldur's Gate 3",                           Genre = "RPG",              System = "PC",              Developer = "Larian Studios",         HoursPlayed = 120, Review = 10.0, HowLongToBeat = 100 },
-        new Games { Name = "Elden Ring",                                Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",           HoursPlayed = 95,  Review = 9.5,  HowLongToBeat = 60  },
-        new Games { Name = "God of War: Ragnarök",                      Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Santa Monica Studio",    HoursPlayed = 40,  Review = 9.5,  HowLongToBeat = 26  },
-        new Games { Name = "Alan Wake 2",                               Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",   HoursPlayed = 20,  Review = 8.5,  HowLongToBeat = 15  },
-        new Games { Name = "The Legend of Zelda: Tears of the Kingdom", Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 120, Review = 10.0, HowLongToBeat = 50  },
-
-        // — Earlier years —
-        new Games { Name = "The Witcher 3: Wild Hunt",                  Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",         HoursPlayed = 180, Review = 10.0, HowLongToBeat = 52  },
-        new Games { Name = "God of War",                                Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Santa Monica Studio",    HoursPlayed = 75,  Review = 9.5,  HowLongToBeat = 21  },
-        new Games { Name = "Red Dead Redemption 2",                     Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Rockstar Games",         HoursPlayed = 110, Review = 9.5,  HowLongToBeat = 50  },
-        new Games { Name = "Hollow Knight",                             Genre = "Metroidvania",     System = "PC",              Developer = "Team Cherry",            HoursPlayed = 45,  Review = 9.0,  HowLongToBeat = 42  },
-        new Games { Name = "Hades",                                     Genre = "Roguelike",        System = "PC",              Developer = "Supergiant Games",       HoursPlayed = 55,  Review = 9.5,  HowLongToBeat = 22  },
-        new Games { Name = "Persona 5 Royal",                           Genre = "JRPG",             System = "PlayStation 4",   Developer = "Atlus",                  HoursPlayed = 120, Review = 10.0, HowLongToBeat = 103 },
-        new Games { Name = "Breath of the Wild",                        Genre = "Action-Adventure", System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 150, Review = 10.0, HowLongToBeat = 50  },
-        new Games { Name = "Disco Elysium",                             Genre = "RPG",              System = "PC",              Developer = "ZA/UM",                  HoursPlayed = 38,  Review = 9.0,  HowLongToBeat = 25  },
-        new Games { Name = "Monster Hunter World",                      Genre = "Action RPG",       System = "PC",              Developer = "Capcom",                 HoursPlayed = 200, Review = 8.5,  HowLongToBeat = 47  },
-        new Games { Name = "Dark Souls III",                            Genre = "Action RPG",       System = "PC",              Developer = "FromSoftware",           HoursPlayed = 80,  Review = 8.5,  HowLongToBeat = 32  },
-        new Games { Name = "Cyberpunk 2077",                            Genre = "RPG",              System = "PC",              Developer = "CD Projekt Red",         HoursPlayed = 85,  Review = 8.0,  HowLongToBeat = 25  },
-        new Games { Name = "Final Fantasy XIV",                         Genre = "MMORPG",           System = "PC",              Developer = "Square Enix",            HoursPlayed = 300, Review = 9.0,  HowLongToBeat = 120 },
-        new Games { Name = "Sekiro: Shadows Die Twice",                 Genre = "Action",           System = "PC",              Developer = "FromSoftware",           HoursPlayed = 65,  Review = 8.5,  HowLongToBeat = 30  },
-        new Games { Name = "Stardew Valley",                            Genre = "Simulation",       System = "PC",              Developer = "ConcernedApe",           HoursPlayed = 130, Review = 8.5,  HowLongToBeat = 55  },
-        new Games { Name = "Death Stranding",                           Genre = "Action",           System = "PC",              Developer = "Kojima Productions",     HoursPlayed = 55,  Review = 7.0,  HowLongToBeat = 40  },
-        new Games { Name = "Control",                                   Genre = "Action-Adventure", System = "PC",              Developer = "Remedy Entertainment",   HoursPlayed = 25,  Review = 8.0,  HowLongToBeat = 12  },
-        new Games { Name = "Divinity: Original Sin 2",                  Genre = "RPG",              System = "PC",              Developer = "Larian Studios",         HoursPlayed = 160, Review = 9.5,  HowLongToBeat = 60  },
-        new Games { Name = "Marvel's Spider-Man",                       Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Insomniac Games",        HoursPlayed = 30,  Review = 8.5,  HowLongToBeat = 17  },
-        new Games { Name = "Mass Effect 2",                             Genre = "RPG",              System = "PC",              Developer = "BioWare",                HoursPlayed = 42,  Review = 10.0, HowLongToBeat = 25  },
-        new Games { Name = "Bloodborne",                                Genre = "Action RPG",       System = "PlayStation 4",   Developer = "FromSoftware",           HoursPlayed = 60,  Review = 9.5,  HowLongToBeat = 35  },
-        new Games { Name = "The Last of Us Part II",                    Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Naughty Dog",            HoursPlayed = 30,  Review = 9.0,  HowLongToBeat = 25  },
-        new Games { Name = "Ghost of Tsushima",                         Genre = "Action-Adventure", System = "PlayStation 4",   Developer = "Sucker Punch",           HoursPlayed = 50,  Review = 9.0,  HowLongToBeat = 26  },
-        new Games { Name = "Horizon Zero Dawn",                         Genre = "Action RPG",       System = "PC",              Developer = "Guerrilla Games",        HoursPlayed = 45,  Review = 8.0,  HowLongToBeat = 23  },
-        new Games { Name = "Spider-Man: Miles Morales",                 Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Insomniac Games",        HoursPlayed = 15,  Review = 8.5,  HowLongToBeat = 8   },
-        new Games { Name = "Returnal",                                  Genre = "Roguelike",        System = "PlayStation 5",   Developer = "Housemarque",            HoursPlayed = 35,  Review = 8.5,  HowLongToBeat = 15  },
-        new Games { Name = "Final Fantasy VII Remake",                  Genre = "JRPG",             System = "PlayStation 4",   Developer = "Square Enix",            HoursPlayed = 40,  Review = 9.0,  HowLongToBeat = 34  },
-        new Games { Name = "Resident Evil Village",                     Genre = "Action",           System = "PC",              Developer = "Capcom",                 HoursPlayed = 12,  Review = 7.5,  HowLongToBeat = 9   },
-        new Games { Name = "Metroid Dread",                             Genre = "Metroidvania",     System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 10,  Review = 9.0,  HowLongToBeat = 9   },
-        new Games { Name = "Pokemon Legends: Arceus",                   Genre = "RPG",              System = "Nintendo Switch", Developer = "Game Freak",             HoursPlayed = 50,  Review = 7.5,  HowLongToBeat = 26  },
-        new Games { Name = "Hogwarts Legacy",                           Genre = "Action RPG",       System = "PC",              Developer = "Avalanche Software",     HoursPlayed = 55,  Review = 8.0,  HowLongToBeat = 27  },
-        new Games { Name = "Diablo IV",                                 Genre = "Action RPG",       System = "PC",              Developer = "Blizzard Entertainment", HoursPlayed = 60,  Review = 7.5,  HowLongToBeat = 30  },
-        new Games { Name = "Armored Core VI",                           Genre = "Action",           System = "PC",              Developer = "FromSoftware",           HoursPlayed = 30,  Review = 8.5,  HowLongToBeat = 22  },
-        new Games { Name = "Marvel's Spider-Man 2",                     Genre = "Action-Adventure", System = "PlayStation 5",   Developer = "Insomniac Games",        HoursPlayed = 20,  Review = 9.0,  HowLongToBeat = 16  },
-        new Games { Name = "Super Mario Bros. Wonder",                  Genre = "Platformer",       System = "Nintendo Switch", Developer = "Nintendo",               HoursPlayed = 15,  Review = 9.0,  HowLongToBeat = 11  },
-        new Games { Name = "Lies of P",                                 Genre = "Action RPG",       System = "PC",              Developer = "Neowiz",                 HoursPlayed = 35,  Review = 8.0,  HowLongToBeat = 28  },
-        new Games { Name = "Sifu",                                      Genre = "Action",           System = "PC",              Developer = "Sloclap",                HoursPlayed = 20,  Review = 7.5,  HowLongToBeat = 7   },
-        new Games { Name = "Vampire Survivors",                         Genre = "Roguelike",        System = "PC",              Developer = "Poncle",                 HoursPlayed = 25,  Review = 8.5,  HowLongToBeat = 10  },
-        new Games { Name = "Cult of the Lamb",                          Genre = "Roguelike",        System = "PC",              Developer = "Massive Monster",        HoursPlayed = 20,  Review = 7.5,  HowLongToBeat = 15  },
-        new Games { Name = "Stray",                                     Genre = "Action-Adventure", System = "PC",              Developer = "BlueTwelve Studio",      HoursPlayed = 5,   Review = 7.5,  HowLongToBeat = 4   },
-        new Games { Name = "Tunic",                                     Genre = "Action-Adventure", System = "PC",              Developer = "Andrew Shouldice",       HoursPlayed = 15,  Review = 8.5,  HowLongToBeat = 9   },
-        new Games { Name = "It Takes Two",                              Genre = "Action",           System = "PC",              Developer = "Hazelight Studios",      HoursPlayed = 12,  Review = 9.5,  HowLongToBeat = 12  },
-        new Games { Name = "Demon's Souls",                             Genre = "Action RPG",       System = "PlayStation 5",   Developer = "Bluepoint Games",        HoursPlayed = 30,  Review = 8.5,  HowLongToBeat = 27  },
-        new Games { Name = "Deathloop",                                 Genre = "Action",           System = "PC",              Developer = "Arkane Studios",         HoursPlayed = 20,  Review = 7.5,  HowLongToBeat = 15  },
-        new Games { Name = "Psychonauts 2",                             Genre = "Platformer",       System = "PC",              Developer = "Double Fine Productions",HoursPlayed = 15,  Review = 8.5,  HowLongToBeat = 12  },
-        new Games { Name = "Forza Horizon 5",                           Genre = "Racing",           System = "PC",              Developer = "Playground Games",       HoursPlayed = 40,  Review = 8.0,  HowLongToBeat = 15  },
-    };
+    private List<Games> GamesList = new();
 
     protected override async Task OnInitializedAsync()
     {
-        var artTasks = GamesList.Select(async game =>
+        if (AuthState.CurrentUser == null) return;
+
+        GamesList = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
+
+        var artTasks = GamesList.Where(g => string.IsNullOrEmpty(g.GameArtUrl)).Select(async game =>
         {
             game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
             await InvokeAsync(StateHasChanged);
         });
         await Task.WhenAll(artTasks);
 
-        if (AuthState.CurrentUser != null)
+        var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
+        foreach (var (name, status) in statuses)
         {
-            var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
-            foreach (var (name, status) in statuses)
-            {
-                if (status == "playing")       _playing.Add(name);
-                else if (status == "finished") _finished.Add(name);
-            }
+            if (status == "playing")       _playing.Add(name);
+            else if (status == "finished") _finished.Add(name);
+        }
+    }
+
+    private async Task AddGameAsync()
+    {
+        var dialog = await DialogService.ShowAsync<AddGameDialog>("Add Game");
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: Games game })
+        {
+            game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
+            GamesList.Add(game);
+            if (AuthState.CurrentUser != null)
+                await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, GamesList);
+            StateHasChanged();
         }
     }
 
