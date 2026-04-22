@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "GGUrHhTy",
+  "version": "SlyPyDEU",
   "assets": [
     {
       "hash": "sha256-ox/hMOo9zNWYbb4mOU6u1Y1BWQZagPWi0Omy44GKCUw=",
@@ -98,8 +98,8 @@ self.assetsManifest = {
       "url": "_framework/MudBlazor.dirrv3j5wg.wasm"
     },
     {
-      "hash": "sha256-3NYraIWv7d0VlsP8gNtmm5f3jqPewr+CFeHta+9JDhU=",
-      "url": "_framework/PlayedGames.o9k9882nl2.wasm"
+      "hash": "sha256-emhR4Ab7Rh5THNW5+YrwGSuod5xrPlHQ2YEwBaSXleY=",
+      "url": "_framework/PlayedGames.2qd4ao22c2.wasm"
     },
     {
       "hash": "sha256-nDzwxg3Q2j6BrXMOfON8bAoXCJCn0JSU4rUkfku9KY0=",
@@ -142,12 +142,12 @@ self.assetsManifest = {
       "url": "_framework/System.IO.Pipelines.xlksj35j40.wasm"
     },
     {
-      "hash": "sha256-gjk61gwjXPo8xRhdthMHVIvSFcgBSlzuNe8gVjxM8WE=",
-      "url": "_framework/System.Linq.2gseam502m.wasm"
-    },
-    {
       "hash": "sha256-iZE/VleHCRpDVPVk3r8jhmp/kwbFkezJFPjTSpqJ8VA=",
       "url": "_framework/System.Linq.Expressions.5xe45ay3j9.wasm"
+    },
+    {
+      "hash": "sha256-Y4W1hjStF6naeFIifYAZN9gAhP2cinUv6gw+L2MDXlM=",
+      "url": "_framework/System.Linq.d4wslx5lm8.wasm"
     },
     {
       "hash": "sha256-PmdNiG3/51v/xNAEPnwwsjIKeV6eTkYQhhrmoyKy8ms=",
@@ -170,8 +170,8 @@ self.assetsManifest = {
       "url": "_framework/System.ObjectModel.p064y5ut7q.wasm"
     },
     {
-      "hash": "sha256-Q089OCkTx9JmgjxoxnTU3JrCUwkB36WRngTNoKr9Uvg=",
-      "url": "_framework/System.Private.CoreLib.rya358jibv.wasm"
+      "hash": "sha256-fXChY9gyq/uiGvcBqK0G16piZuWU4xtvU0IwpiDBR7w=",
+      "url": "_framework/System.Private.CoreLib.7normxewpl.wasm"
     },
     {
       "hash": "sha256-6l9TlDqhgFrD/4Lw6KxYI79rgR9WHXq2ZLYM1ohdXPw=",
@@ -206,7 +206,7 @@ self.assetsManifest = {
       "url": "_framework/System.dqfxtvioy0.wasm"
     },
     {
-      "hash": "sha256-Vqtv5YKTOHeH5kmYCAXoAMBiHm6WjYwrMWL73XStNbg=",
+      "hash": "sha256-afwqh9XvKF423cM5/zt713j5i9XZC7Q338O3rb7aScU=",
       "url": "_framework/blazor.boot.json"
     },
     {
@@ -242,7 +242,7 @@ self.assetsManifest = {
       "url": "_framework/icudt_no_CJK.lfu7j35m59.dat"
     },
     {
-      "hash": "sha256-TF9t60vJeH9xFRBs5XJCv3innUnMiCZnA1Ke+1Sbi60=",
+      "hash": "sha256-U1wQdiVN/EJk4+8DR6pR6VelgEUDV/DSZTL91r6UMl4=",
       "url": "app.css"
     },
     {
