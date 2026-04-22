@@ -90,6 +90,7 @@ namespace PlayedGames.Services
                     HowLongToBeat = el.TryGetProperty("HowLongToBeat", out var lb) ? lb.GetDouble() : 0,
                     GameArtUrl    = el.TryGetProperty("GameArtUrl",    out var a)  ? a.GetString()  : null,
                     Year          = el.TryGetProperty("Year",          out var y)  ? y.GetInt32()   : DateTime.Now.Year,
+                    ReviewText    = el.TryGetProperty("ReviewText",    out var rt) ? rt.GetString() : null,
                 }).ToList();
             }
             catch { return new List<Games>(); }

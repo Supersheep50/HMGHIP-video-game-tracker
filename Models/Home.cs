@@ -11,5 +11,6 @@ namespace PlayedGames.Modals
         public double HowLongToBeat { get; set; }
         public string? GameArtUrl { get; set; }
         public int Year { get; set; } = DateTime.Now.Year;
+        public string? ReviewText { get; set; }
     }
 }

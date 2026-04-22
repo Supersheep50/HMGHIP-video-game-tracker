@@ -1,5 +1,5 @@
 @page "/library"
-@inject PlayedGames.Services.RawgService RawgService
+@inject RawgService RawgService
 @inject FirebaseService Firebase
 @inject AuthStateService AuthState
 
@@ -14,15 +14,15 @@
         </div>
         <div class="hero-stats">
             <div class="stat-card anim-fade-up anim-delay-2">
-                <span class="stat-number">@GamesList.Count</span>
+                <span class="stat-number">@_savedGames.Count</span>
                 <span class="stat-label">Games</span>
             </div>
             <div class="stat-card anim-fade-up anim-delay-3">
-                <span class="stat-number">@GamesList.Sum(g => g.HoursPlayed).ToString("N0")</span>
+                <span class="stat-number">@_savedGames.Sum(g => g.HoursPlayed).ToString("N0")</span>
                 <span class="stat-label">Hours</span>
             </div>
             <div class="stat-card anim-fade-up anim-delay-4">
-                <span class="stat-number">@(GamesList.Any() ? GamesList.Average(g => g.Review).ToString("F1") : "—")</span>
+                <span class="stat-number">@(_savedGames.Any(g => g.Review > 0) ? _savedGames.Where(g => g.Review > 0).Average(g => g.Review).ToString("F1") : "—")</span>
                 <span class="stat-label">Avg Score</span>
             </div>
         </div>
@@ -31,198 +31,280 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
 
-    <div class="filter-row">
-        <MudTextField @bind-Value="_searchString"
-                      Placeholder="Search games, genres, platforms..."
-                      Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      Variant="Variant.Outlined"
-                      Margin="Margin.Dense"
-                      Class="search-input"
-                      Immediate="true" />
-        @if (AuthState.CurrentUser != null)
+    <MudTextField @bind-Value="_searchQuery"
+                  Placeholder="Search for a game to add to your library..."
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Immediate="true"
+                  DebounceInterval="500"
+                  OnDebounceIntervalElapsed="SearchGames"
+                  Class="library-search"
+                  FullWidth="true" />
+
+    @if (_isSearching)
+    {
+        <div class="search-loading">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Small" />
+            <span>Searching...</span>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_searchQuery))
+    {
+        @if (_searchResults.Any())
         {
-            <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="() => _showAddForm = !_showAddForm" Class="add-game-btn">
-                Add Game
-            </MudButton>
+            <MudText Typo="Typo.body2" Class="results-count">
+                @_searchResults.Count results for "@_searchQuery"
+            </MudText>
+            <MudGrid Spacing="3">
+                @foreach (var result in _searchResults)
+                {
+                    var saved = _savedGames.FirstOrDefault(g => string.Equals(g.Name, result.Name, StringComparison.OrdinalIgnoreCase));
+                    <MudItem xs="12" sm="6" md="4" lg="3">
+                        <MudCard Class="game-card" Elevation="0">
+                            <div class="card-art" style="background: @GetGenreGradient(result.Genre)">
+                                @if (!string.IsNullOrEmpty(result.ArtUrl))
+                                {
+                                    <img src="@result.ArtUrl" class="card-art-img" alt="@result.Name" />
+                                }
+                                else
+                                {
+                                    <div class="card-art-icon">
+                                        <MudIcon Icon="@GetGenreIcon(result.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                                    </div>
+                                }
+                            </div>
+                            <MudCardContent Class="card-body">
+                                <div class="card-title-row">
+                                    <p class="game-name">@result.Name</p>
+                                    @if (saved?.Review > 0)
+                                    {
+                                        <span class="card-score @GetRatingClass(saved.Review)">@saved.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
+                                    }
+                                </div>
+                                @if (saved?.Review > 0)
+                                {
+                                    <div class="card-stars-wrap">@RenderStars(saved.Review)</div>
+                                }
+                                <div class="card-tags">
+                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@(result.Genre ?? "Game")</MudChip>
+                                </div>
+                            </MudCardContent>
+                            <div class="card-actions">
+                                <button class="card-action-btn card-action-playing @(_playing.Contains(result.Name) ? "action-active" : "")"
+                                        @onclick="() => TogglePlaying(result.Name, result.ArtUrl, result.Genre)">
+                                    @if (_playing.Contains(result.Name)) {
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                    } else {
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                    }
+                                    Playing
+                                </button>
+                                <button class="card-action-btn card-action-finished @(_finished.Contains(result.Name) ? "action-active" : "")"
+                                        @onclick="() => HandleFinishedClick(result.Name, result.ArtUrl, result.Genre)">
+                                    @if (_finished.Contains(result.Name)) {
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                    } else {
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                    }
+                                    Finished
+                                </button>
+                                <button class="card-action-btn card-action-review @(saved?.Review > 0 ? "action-active" : "")"
+                                        @onclick="() => OpenReviewPopup(result.Name, result.ArtUrl, result.Genre)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                    Review
+                                </button>
+                            </div>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
         }
-    </div>
-
-    @if (_showAddForm)
-    {
-        <div class="add-game-panel">
-            <div class="add-game-panel-header">
-                <span>Add Game</span>
-                <button class="add-game-close" @onclick="() => _showAddForm = false">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                </button>
-            </div>
-            <div class="add-game-panel-body">
-                <MudGrid Spacing="2">
-                    <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_newGame.Name" Label="Game Name" Variant="Variant.Outlined" FullWidth="true" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudTextField @bind-Value="_newGame.Developer" Label="Developer" Variant="Variant.Outlined" FullWidth="true" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudSelect @bind-Value="_newGame.Genre" Label="Genre" Variant="Variant.Outlined" FullWidth="true">
-                            @foreach (var g in _genres)
-                            {
-                                <MudSelectItem Value="@g">@g</MudSelectItem>
-                            }
-                        </MudSelect>
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudSelect @bind-Value="_newGame.System" Label="Platform" Variant="Variant.Outlined" FullWidth="true">
-                            @foreach (var s in _systems)
-                            {
-                                <MudSelectItem Value="@s">@s</MudSelectItem>
-                            }
-                        </MudSelect>
-                    </MudItem>
-                    <MudItem xs="6" sm="3">
-                        <MudNumericField @bind-Value="_newGame.HoursPlayed" Label="Hours Played" Variant="Variant.Outlined" Min="0.0" FullWidth="true" />
-                    </MudItem>
-                    <MudItem xs="6" sm="3">
-                        <MudNumericField @bind-Value="_newGame.Review" Label="Score (0–10)" Variant="Variant.Outlined" Min="0.0" Max="10.0" Step="0.5" FullWidth="true" />
-                    </MudItem>
-                    <MudItem xs="6" sm="3">
-                        <MudNumericField @bind-Value="_newGame.HowLongToBeat" Label="HLTB (hrs)" Variant="Variant.Outlined" Min="0.0" FullWidth="true" />
-                    </MudItem>
-                    <MudItem xs="6" sm="3">
-                        <MudNumericField @bind-Value="_newGame.Year" Label="Year" Variant="Variant.Outlined" Min="2000" Max="2100" FullWidth="true" />
-                    </MudItem>
-                    <MudItem xs="12">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
-                                   OnClick="SubmitAddGameAsync" Disabled="@string.IsNullOrWhiteSpace(_newGame.Name)">
-                            Add Game
-                        </MudButton>
-                    </MudItem>
-                </MudGrid>
-            </div>
-        </div>
-    }
-
-    <MudText Typo="Typo.body2" Class="results-count">
-        Showing @FilteredGames.Count() of @GamesList.Count games
-    </MudText>
-
-    <MudGrid Spacing="3">
-        @{ int cardIdx = 0; }
-        @foreach (var game in FilteredGames)
+        else
         {
-            var delay = $"animation-delay:{cardIdx * 0.07}s";
-            cardIdx++;
-            <MudItem xs="12" sm="6" md="4" lg="3">
-                <div class="card-reveal" style="@delay">
-                <MudCard Class="game-card" Elevation="0">
-                    <div class="card-art @(game.GameArtUrl == null ? "card-art-loading" : "")"
-                         style="background: @GetGenreGradient(game.Genre)">
-                        @if (!string.IsNullOrEmpty(game.GameArtUrl))
-                        {
-                            <img src="@game.GameArtUrl" class="card-art-img" alt="@game.Name" />
-                        }
-                        else
-                        {
-                            <div class="card-art-icon">
-                                <MudIcon Icon="@GetGenreIcon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
-                            </div>
-                        }
-                    </div>
-                    <MudCardContent Class="card-body">
-                        <div class="card-title-row">
-                            <p class="game-name">@game.Name</p>
-                            <span class="card-score @GetRatingClass(game.Review)">@game.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
-                        </div>
-                        <div class="card-stars-wrap">@RenderStars(game.Review)</div>
-                        <div class="card-meta-row">
-                            <p class="game-developer">@game.Developer</p>
-                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="tag-chip">@game.System</MudChip>
-                        </div>
-                        <div class="card-info-row">
-                            <div class="card-hltb">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
-                                <span>~@game.HowLongToBeat hrs to beat</span>
-                            </div>
-                            <div class="card-played">
-                                <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="hours-icon" />
-                                <span class="hours-text">@game.HoursPlayed hrs played</span>
-                            </div>
-                        </div>
-                        <div class="card-tags">
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@game.Genre</MudChip>
-                        </div>
-                    </MudCardContent>
-                    <div class="card-actions">
-                        <button class="card-action-btn card-action-playing @(_playing.Contains(game.Name!) ? "action-active" : "")" @onclick="() => TogglePlaying(game)">
-                            @if (_playing.Contains(game.Name!)) {
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                            } else {
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                            }
-                            Playing
-                        </button>
-                        <button class="card-action-btn card-action-finished @(_finished.Contains(game.Name!) ? "action-active" : "")" @onclick="() => ToggleFinished(game)">
-                            @if (_finished.Contains(game.Name!)) {
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                            } else {
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                            }
-                            Finished
-                        </button>
-                    </div>
-                </MudCard>
-                </div>
-            </MudItem>
+            <div class="empty-state">
+                <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 4rem; opacity: 0.3;" />
+                <MudText Typo="Typo.h6" Class="mt-3">No results for "@_searchQuery"</MudText>
+            </div>
         }
-    </MudGrid>
-
-    @if (AuthState.CurrentUser == null)
-    {
-        <div class="empty-state">
-            <MudIcon Icon="@Icons.Material.Filled.Lock" Style="font-size: 4rem; opacity: 0.3;" />
-            <MudText Typo="Typo.h6" Class="mt-3">Sign in to build your library</MudText>
-            <MudText Typo="Typo.body2">Your games are saved to your account</MudText>
-        </div>
     }
-    else if (!FilteredGames.Any() && !string.IsNullOrWhiteSpace(_searchString))
+    else
     {
-        <div class="empty-state">
-            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Style="font-size: 4rem; opacity: 0.3;" />
-            <MudText Typo="Typo.h6" Class="mt-3">No games found</MudText>
-            <MudText Typo="Typo.body2">Try adjusting your search</MudText>
-        </div>
-    }
-    else if (!GamesList.Any())
-    {
-        <div class="empty-state">
-            <MudIcon Icon="@Icons.Material.Filled.SportsEsports" Style="font-size: 4rem; opacity: 0.3;" />
-            <MudText Typo="Typo.h6" Class="mt-3">No games yet</MudText>
-            <MudText Typo="Typo.body2">Hit <strong>Add Game</strong> to start your library</MudText>
-        </div>
+        @if (AuthState.CurrentUser == null)
+        {
+            <div class="empty-state">
+                <MudIcon Icon="@Icons.Material.Filled.Lock" Style="font-size: 4rem; opacity: 0.3;" />
+                <MudText Typo="Typo.h6" Class="mt-3">Sign in to see your library</MudText>
+            </div>
+        }
+        else if (!_savedGames.Any())
+        {
+            <div class="empty-state">
+                <MudIcon Icon="@Icons.Material.Filled.SportsEsports" Style="font-size: 4rem; opacity: 0.3;" />
+                <MudText Typo="Typo.h6" Class="mt-3">Your library is empty</MudText>
+                <MudText Typo="Typo.body2">Search for a game above to get started</MudText>
+            </div>
+        }
+        else
+        {
+            <MudText Typo="Typo.body2" Class="results-count">
+                @_savedGames.Count games
+            </MudText>
+            <MudGrid Spacing="3">
+                @{ int cardIdx = 0; }
+                @foreach (var game in _savedGames.OrderByDescending(g => g.Review).ThenBy(g => g.Name))
+                {
+                    var delay = $"animation-delay:{cardIdx * 0.07}s";
+                    cardIdx++;
+                    <MudItem xs="12" sm="6" md="4" lg="3">
+                        <div class="card-reveal" style="@delay">
+                        <MudCard Class="game-card" Elevation="0">
+                            <div class="card-art @(game.GameArtUrl == null ? "card-art-loading" : "")"
+                                 style="background: @GetGenreGradient(game.Genre)">
+                                @if (!string.IsNullOrEmpty(game.GameArtUrl))
+                                {
+                                    <img src="@game.GameArtUrl" class="card-art-img" alt="@game.Name" />
+                                }
+                                else
+                                {
+                                    <div class="card-art-icon">
+                                        <MudIcon Icon="@GetGenreIcon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                                    </div>
+                                }
+                            </div>
+                            <MudCardContent Class="card-body">
+                                <div class="card-title-row">
+                                    <p class="game-name">@game.Name</p>
+                                    @if (game.Review > 0)
+                                    {
+                                        <span class="card-score @GetRatingClass(game.Review)">@game.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
+                                    }
+                                </div>
+                                @if (game.Review > 0)
+                                {
+                                    <div class="card-stars-wrap">@RenderStars(game.Review)</div>
+                                }
+                                @if (game.HoursPlayed > 0)
+                                {
+                                    <div class="card-info-row">
+                                        <div class="card-played">
+                                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="hours-icon" />
+                                            <span class="hours-text">@game.HoursPlayed hrs played</span>
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(game.ReviewText))
+                                {
+                                    <p class="card-review-snippet">@game.ReviewText</p>
+                                }
+                                <div class="card-tags">
+                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@(game.Genre ?? "Game")</MudChip>
+                                </div>
+                            </MudCardContent>
+                            <div class="card-actions">
+                                <button class="card-action-btn card-action-playing @(_playing.Contains(game.Name!) ? "action-active" : "")"
+                                        @onclick="() => TogglePlaying(game.Name!, game.GameArtUrl, game.Genre)">
+                                    @if (_playing.Contains(game.Name!)) {
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                    } else {
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                    }
+                                    Playing
+                                </button>
+                                <button class="card-action-btn card-action-finished @(_finished.Contains(game.Name!) ? "action-active" : "")"
+                                        @onclick="() => HandleFinishedClick(game.Name!, game.GameArtUrl, game.Genre)">
+                                    @if (_finished.Contains(game.Name!)) {
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                    } else {
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                    }
+                                    Finished
+                                </button>
+                                <button class="card-action-btn card-action-review @(game.Review > 0 ? "action-active" : "")"
+                                        @onclick="() => OpenReviewPopup(game.Name!, game.GameArtUrl, game.Genre)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                    Review
+                                </button>
+                            </div>
+                        </MudCard>
+                        </div>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
     }
 
 </MudContainer>
 
+@if (_finishedGame != null)
+{
+    <div class="popup-overlay" @onclick="CloseFinishedPopup">
+        <div class="popup-sheet" @onclick:stopPropagation>
+            <div class="popup-handle-bar"></div>
+            <p class="popup-title">Mark as Finished</p>
+            <p class="popup-game-name">@_finishedGame</p>
+            <MudNumericField @bind-Value="_finishedHours" Label="Hours Played" Variant="Variant.Outlined"
+                             Min="0.0" Step="0.5" Class="mb-4" FullWidth="true" />
+            <div class="popup-actions">
+                <MudButton Variant="Variant.Text" OnClick="CloseFinishedPopup">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitFinished">Save</MudButton>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_reviewGame != null)
+{
+    <div class="popup-overlay" @onclick="CloseReviewPopup">
+        <div class="popup-sheet" @onclick:stopPropagation>
+            <div class="popup-handle-bar"></div>
+            <p class="popup-title">Write a Review</p>
+            <p class="popup-game-name">@_reviewGame</p>
+            <div class="star-rating-row">
+                <MudRating @bind-SelectedValue="_reviewStars" MaxValue="5" Color="Color.Warning" />
+                <span class="star-score-label">@(_reviewStars * 2) / 10</span>
+            </div>
+            <MudTextField @bind-Value="_reviewText" Label="Your thoughts..." Lines="4"
+                          Variant="Variant.Outlined" Class="mb-4" FullWidth="true" />
+            <div class="popup-actions">
+                <MudButton Variant="Variant.Text" OnClick="CloseReviewPopup">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           OnClick="SubmitReview" Disabled="@(_reviewStars == 0)">
+                    Save Review
+                </MudButton>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private string _searchString = "";
-    private List<Games> GamesList = new();
+    private List<Games> _savedGames = new();
+    private List<RawgSearchResult> _searchResults = new();
+    private string _searchQuery = "";
+    private bool _isSearching;
+
+    private readonly HashSet<string> _playing  = new();
+    private readonly HashSet<string> _finished = new();
+
+    // Finished popup
+    private string? _finishedGame;
+    private string? _finishedGameArt;
+    private string? _finishedGameGenre;
+    private double  _finishedHours;
+
+    // Review popup
+    private string? _reviewGame;
+    private string? _reviewGameArt;
+    private string? _reviewGameGenre;
+    private int     _reviewStars = 3;
+    private string  _reviewText  = "";
 
     protected override async Task OnInitializedAsync()
     {
         if (AuthState.CurrentUser == null) return;
 
-        GamesList = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
-
-        var artTasks = GamesList.Where(g => string.IsNullOrEmpty(g.GameArtUrl)).Select(async game =>
-        {
-            game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
-            await InvokeAsync(StateHasChanged);
-        });
-        await Task.WhenAll(artTasks);
+        _savedGames = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
 
         var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
         foreach (var (name, status) in statuses)
@@ -232,72 +314,123 @@
         }
     }
 
-    private bool _showAddForm = false;
-    private Games _newGame = new() { Year = DateTime.Now.Year, Review = 7.0 };
+    // ── Search ────────────────────────────────────────────────────────────
 
-    private static readonly string[] _genres =
+    private async Task SearchGames(string query)
     {
-        "Action", "Action RPG", "Action-Adventure", "JRPG", "Metroidvania",
-        "MMORPG", "Platformer", "Racing", "Roguelike", "RPG", "Simulation",
-        "Sports", "Strategy", "Other"
-    };
-
-    private static readonly string[] _systems =
-    {
-        "PC", "PlayStation 5", "PlayStation 4", "Xbox Series X", "Xbox One",
-        "Nintendo Switch", "Mobile", "Other"
-    };
-
-    private async Task SubmitAddGameAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_newGame.Name)) return;
-
-        _newGame.GameArtUrl = await RawgService.GetGameArtAsync(_newGame.Name);
-        GamesList.Add(_newGame);
-
-        if (AuthState.CurrentUser != null)
-            await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, GamesList);
-
-        _newGame = new() { Year = DateTime.Now.Year, Review = 7.0 };
-        _showAddForm = false;
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            _searchResults = new();
+            return;
+        }
+        _isSearching = true;
         StateHasChanged();
+        _searchResults = await RawgService.SearchGamesAsync(query);
+        _isSearching = false;
     }
 
-    private IEnumerable<Games> FilteredGames =>
-        GamesList.Where(g =>
-            string.IsNullOrWhiteSpace(_searchString) ||
-            (g.Name?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (g.Genre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (g.System?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (g.Developer?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false)
-        ).OrderByDescending(g => g.Review).ThenBy(g => g.Name);
+    // ── Helpers ───────────────────────────────────────────────────────────
 
-    private readonly HashSet<string> _playing  = new();
-    private readonly HashSet<string> _finished = new();
-
-    private async Task TogglePlaying(Games game)
+    private Games GetOrCreate(string name, string? artUrl, string? genre)
     {
-        if (!_playing.Add(game.Name!)) _playing.Remove(game.Name!);
-        else _finished.Remove(game.Name!);
+        var existing = _savedGames.FirstOrDefault(g =>
+            string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase));
+        if (existing != null) return existing;
+
+        var game = new Games { Name = name, GameArtUrl = artUrl, Genre = genre ?? "Other", Year = DateTime.Now.Year };
+        _savedGames.Add(game);
+        return game;
+    }
+
+    // ── Playing ───────────────────────────────────────────────────────────
+
+    private async Task TogglePlaying(string name, string? artUrl, string? genre)
+    {
+        GetOrCreate(name, artUrl, genre);
+
+        if (!_playing.Add(name)) _playing.Remove(name);
+        else _finished.Remove(name);
 
         if (AuthState.CurrentUser != null)
         {
-            var status = _playing.Contains(game.Name!) ? "playing" : "none";
-            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, game.Name!, status);
+            var status = _playing.Contains(name) ? "playing" : "none";
+            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, name, status);
+            await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, _savedGames);
         }
     }
 
-    private async Task ToggleFinished(Games game)
+    // ── Finished ──────────────────────────────────────────────────────────
+
+    private async Task HandleFinishedClick(string name, string? artUrl, string? genre)
     {
-        if (!_finished.Add(game.Name!)) _finished.Remove(game.Name!);
-        else _playing.Remove(game.Name!);
+        if (_finished.Contains(name))
+        {
+            _finished.Remove(name);
+            if (AuthState.CurrentUser != null)
+                await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, name, "none");
+        }
+        else
+        {
+            var existing = _savedGames.FirstOrDefault(g =>
+                string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase));
+            _finishedGame    = name;
+            _finishedGameArt = artUrl;
+            _finishedGameGenre = genre;
+            _finishedHours   = existing?.HoursPlayed ?? 0;
+        }
+    }
+
+    private void CloseFinishedPopup() => _finishedGame = null;
+
+    private async Task SubmitFinished()
+    {
+        if (_finishedGame == null) return;
+
+        var game = GetOrCreate(_finishedGame, _finishedGameArt, _finishedGameGenre);
+        game.HoursPlayed = _finishedHours;
+
+        _finished.Add(_finishedGame);
+        _playing.Remove(_finishedGame);
 
         if (AuthState.CurrentUser != null)
         {
-            var status = _finished.Contains(game.Name!) ? "finished" : "none";
-            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, game.Name!, status);
+            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _finishedGame, "finished");
+            await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, _savedGames);
         }
+
+        CloseFinishedPopup();
     }
+
+    // ── Review ────────────────────────────────────────────────────────────
+
+    private void OpenReviewPopup(string name, string? artUrl, string? genre)
+    {
+        var existing = _savedGames.FirstOrDefault(g =>
+            string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase));
+        _reviewGame    = name;
+        _reviewGameArt = artUrl;
+        _reviewGameGenre = genre;
+        _reviewStars   = existing?.Review > 0 ? (int)Math.Round(existing.Review / 2.0) : 3;
+        _reviewText    = existing?.ReviewText ?? "";
+    }
+
+    private void CloseReviewPopup() => _reviewGame = null;
+
+    private async Task SubmitReview()
+    {
+        if (_reviewGame == null) return;
+
+        var game = GetOrCreate(_reviewGame, _reviewGameArt, _reviewGameGenre);
+        game.Review     = _reviewStars * 2.0;
+        game.ReviewText = _reviewText;
+
+        if (AuthState.CurrentUser != null)
+            await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, _savedGames);
+
+        CloseReviewPopup();
+    }
+
+    // ── Display helpers ───────────────────────────────────────────────────
 
     private static MarkupString RenderStars(double score)
     {
