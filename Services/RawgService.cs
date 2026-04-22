@@ -31,6 +31,26 @@ namespace PlayedGames.Services
             catch { return null; }
         }
 
+        public async Task<List<RawgSearchResult>> GetPopularGamesAsync(int pageSize = 20)
+        {
+            if (string.IsNullOrEmpty(_apiKey)) return new();
+
+            var url = $"https://api.rawg.io/api/games?key={_apiKey}&ordering=-added&page_size={pageSize}";
+
+            try
+            {
+                var response = await _http.GetFromJsonAsync<RawgResponse>(url);
+                return response?.Results?
+                    .Where(r => !string.IsNullOrEmpty(r.Name))
+                    .Select(r => new RawgSearchResult(
+                        r.Name!,
+                        r.BackgroundImage,
+                        r.Genres?.FirstOrDefault()?.Name))
+                    .ToList() ?? new();
+            }
+            catch { return new(); }
+        }
+
         public async Task<List<RawgSearchResult>> SearchGamesAsync(string query)
         {
             if (string.IsNullOrEmpty(_apiKey) || string.IsNullOrEmpty(query))

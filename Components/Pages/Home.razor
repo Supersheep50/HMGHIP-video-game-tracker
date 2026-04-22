@@ -3,20 +3,19 @@
 @inject FirebaseService Firebase
 @inject AuthStateService AuthState
 
-<PageTitle>HMGHIP — Games Played 2026</PageTitle>
+<PageTitle>HMGHIP — Games Played @DateTime.Now.Year</PageTitle>
 
 <div class="hero-header">
-    <!-- Scrolling carousel background — quad-duplicated so 5 tiles fills the track -->
     <div class="hero-carousel" aria-hidden="true">
         <div class="carousel-track">
             @for (int copy = 0; copy < 4; copy++)
             {
-                @foreach (var game in GamesList)
+                @foreach (var game in _heroBackgroundGames)
                 {
                     <div class="carousel-tile" style="background: @GetGenreGradient(game.Genre)">
-                        @if (!string.IsNullOrEmpty(game.GameArtUrl))
+                        @if (!string.IsNullOrEmpty(game.ArtUrl))
                         {
-                            <img src="@game.GameArtUrl" alt="" class="carousel-img" />
+                            <img src="@game.ArtUrl" alt="" class="carousel-img" />
                         }
                     </div>
                 }
@@ -27,21 +26,21 @@
 
     <div class="hero-inner">
         <div class="hero-title-section anim-fade-up">
-            <div class="year-badge">2026</div>
+            <div class="year-badge">@DateTime.Now.Year</div>
             <p class="hero-title">Games Played</p>
             <p class="hero-subtitle">A running diary of every game played this year</p>
         </div>
         <div class="hero-stats">
             <div class="stat-card anim-fade-up anim-delay-2">
-                <span class="stat-number">@GamesList.Count</span>
+                <span class="stat-number">@_yearGames.Count</span>
                 <span class="stat-label">Games</span>
             </div>
             <div class="stat-card anim-fade-up anim-delay-3">
-                <span class="stat-number">@GamesList.Sum(g => g.HoursPlayed).ToString("N0")</span>
+                <span class="stat-number">@_yearGames.Sum(g => g.HoursPlayed).ToString("N0")</span>
                 <span class="stat-label">Hours</span>
             </div>
             <div class="stat-card anim-fade-up anim-delay-4">
-                <span class="stat-number">@(GamesList.Any() ? GamesList.Average(g => g.Review).ToString("F1") : "—")</span>
+                <span class="stat-number">@(_yearGames.Any(g => g.Review > 0) ? _yearGames.Where(g => g.Review > 0).Average(g => g.Review).ToString("F1") : "—")</span>
                 <span class="stat-label">Avg Score</span>
             </div>
         </div>
@@ -50,128 +49,331 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
 
-    <MudGrid Spacing="3">
-        @{ int cardIdx = 0; }
-        @foreach (var game in GamesList)
+    @* ── Currently Playing ───────────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Currently Playing</h2>
+            @if (_currentlyPlaying.Any())
+            {
+                <span class="section-count">@_currentlyPlaying.Count</span>
+            }
+        </div>
+        @if (!_currentlyPlaying.Any())
         {
-            var delay = $"animation-delay:{cardIdx * 0.1}s";
-            cardIdx++;
-            <MudItem xs="12" sm="6" md="4" lg="3">
-                <div class="card-reveal" style="@delay">
-                <MudCard Class="game-card" Elevation="0">
-                    <div class="card-art @(game.GameArtUrl == null ? "card-art-loading" : "")"
-                         style="background: @GetGenreGradient(game.Genre)">
-                        @if (!string.IsNullOrEmpty(game.GameArtUrl))
+            <div class="section-empty">
+                <MudIcon Icon="@Icons.Material.Filled.SportsEsports" Style="font-size: 2.5rem; opacity: 0.3;" />
+                <span>No games marked as playing yet</span>
+            </div>
+        }
+        else
+        {
+            <MudGrid Spacing="3">
+                @foreach (var game in _currentlyPlaying)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="3">
+                        <MudCard Class="game-card" Elevation="0">
+                            <div class="card-art" style="background: @GetGenreGradient(game.Genre)">
+                                @if (!string.IsNullOrEmpty(game.GameArtUrl))
+                                {
+                                    <img src="@game.GameArtUrl" class="card-art-img" alt="@game.Name" />
+                                }
+                                else
+                                {
+                                    <div class="card-art-icon">
+                                        <MudIcon Icon="@GetGenreIcon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                                    </div>
+                                }
+                                <div class="playing-badge">
+                                    <span class="playing-pulse"></span> Playing
+                                </div>
+                            </div>
+                            <MudCardContent Class="card-body">
+                                <p class="game-name">@game.Name</p>
+                                @if (game.HoursPlayed > 0)
+                                {
+                                    <div class="card-info-row">
+                                        <div class="card-played">
+                                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="hours-icon" />
+                                            <span class="hours-text">@game.HoursPlayed hrs played</span>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="card-tags">
+                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@(game.Genre ?? "Game")</MudChip>
+                                </div>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </section>
+
+    @* ── Games Played This Year ──────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Games Played This Year</h2>
+            <span class="section-subtitle">Yours and your friends'</span>
+        </div>
+        <div class="auto-carousel">
+            <div class="auto-carousel-track auto-carousel-slow">
+                @foreach (var item in _yearActivityFeed.Concat(_yearActivityFeed))
+                {
+                    <div class="activity-tile" style="background: @GetGenreGradient(item.Genre)">
+                        @if (!string.IsNullOrEmpty(item.ArtUrl))
                         {
-                            <img src="@game.GameArtUrl" class="card-art-img" alt="@game.Name" />
+                            <img src="@item.ArtUrl" alt="" class="activity-tile-img" />
+                        }
+                        <div class="activity-tile-overlay">
+                            <div class="activity-tile-game">@item.GameName</div>
+                            <div class="activity-tile-meta">
+                                @if (item.Friend != null)
+                                {
+                                    <span class="activity-avatar" style="background: @item.Friend.AvatarColor">@item.Friend.Initials</span>
+                                    <span>@item.Friend.Name finished</span>
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Style="color: #86efac;" />
+                                    <span>You finished</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    @* ── Game Recommendations ────────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Game Recommendations</h2>
+            <span class="section-subtitle">Trending right now</span>
+        </div>
+        <div class="auto-carousel">
+            <div class="auto-carousel-track auto-carousel-medium">
+                @foreach (var rec in _recommendations.Concat(_recommendations))
+                {
+                    <div class="rec-tile" style="background: @GetGenreGradient(rec.Genre)">
+                        @if (!string.IsNullOrEmpty(rec.ArtUrl))
+                        {
+                            <img src="@rec.ArtUrl" alt="@rec.Name" class="rec-tile-img" />
                         }
                         else
                         {
-                            <div class="card-art-icon">
-                                <MudIcon Icon="@GetGenreIcon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                            <div class="rec-tile-icon">
+                                <MudIcon Icon="@GetGenreIcon(rec.Genre)" Style="font-size: 3rem; opacity: 0.3; color: white;" />
                             </div>
                         }
-                    </div>
-                    <MudCardContent Class="card-body">
-                        <div class="card-title-row">
-                            <p class="game-name">@game.Name</p>
-                            <span class="card-score @GetRatingClass(game.Review)">@game.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
-                        </div>
-                        <div class="card-stars-wrap">@RenderStars(game.Review)</div>
-                        <div class="card-meta-row">
-                            <p class="game-developer">@game.Developer</p>
-                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="tag-chip">@game.System</MudChip>
-                        </div>
-                        <div class="card-info-row">
-                            <div class="card-hltb">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
-                                <span>~@game.HowLongToBeat hrs to beat</span>
-                            </div>
-                            <div class="card-played">
-                                <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="hours-icon" />
-                                <span class="hours-text">@game.HoursPlayed hrs played</span>
-                            </div>
-                        </div>
-                        <div class="card-tags">
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@game.Genre</MudChip>
-                        </div>
-                    </MudCardContent>
-                    <div class="card-actions">
-                        <button class="card-action-btn card-action-playing @(_playing.Contains(game.Name!) ? "action-active" : "")" @onclick="() => TogglePlaying(game)">
-                            @if (_playing.Contains(game.Name!)) {
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                            } else {
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        <div class="rec-tile-overlay">
+                            <div class="rec-tile-name">@rec.Name</div>
+                            @if (!string.IsNullOrEmpty(rec.Genre))
+                            {
+                                <div class="rec-tile-genre">@rec.Genre</div>
                             }
-                            Playing
-                        </button>
-                        <button class="card-action-btn card-action-finished @(_finished.Contains(game.Name!) ? "action-active" : "")" @onclick="() => ToggleFinished(game)">
-                            @if (_finished.Contains(game.Name!)) {
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                            } else {
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                            }
-                            Finished
-                        </button>
+                        </div>
                     </div>
-                </MudCard>
+                }
+            </div>
+        </div>
+    </section>
+
+    @* ── Reviews ─────────────────────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Recent Reviews</h2>
+            <span class="section-subtitle">From you and your friends</span>
+        </div>
+        <div class="reviews-list">
+            @foreach (var review in _allReviews)
+            {
+                <div class="review-card">
+                    <div class="review-header">
+                        @if (review.Friend != null)
+                        {
+                            <span class="review-avatar" style="background: @review.Friend.AvatarColor">@review.Friend.Initials</span>
+                        }
+                        else
+                        {
+                            <span class="review-avatar review-avatar-self">YOU</span>
+                        }
+                        <div class="review-author-block">
+                            <div class="review-author">@(review.Friend?.Name ?? "You")</div>
+                            <div class="review-when">@RelativeTime(review.When)</div>
+                        </div>
+                        <div class="review-score-pill @GetRatingClass(review.Score)">
+                            @review.Score.ToString("F1")<span class="review-score-sub">/10</span>
+                        </div>
+                    </div>
+                    <div class="review-body">
+                        <div class="review-game">@review.GameName</div>
+                        <div class="review-stars">@RenderStars(review.Score)</div>
+                        <p class="review-text">@review.ReviewText</p>
+                    </div>
                 </div>
-            </MudItem>
-        }
-    </MudGrid>
+            }
+        </div>
+    </section>
 
 </MudContainer>
 
 @code {
-    private List<Games> GamesList = new();
+    // User's saved games (from Firebase)
+    private List<Games> _allUserGames = new();
+    private List<Games> _yearGames = new();
+    private List<Games> _currentlyPlaying = new();
+    private readonly HashSet<string> _playing = new();
+
+    // Hero background — lightweight tile data
+    private List<TileData> _heroBackgroundGames = new();
+
+    // Recommendations carousel
+    private List<RawgSearchResult> _recommendations = new();
+
+    // Combined "this year" feed (user finishes + friend finishes)
+    private List<ActivityItem> _yearActivityFeed = new();
+
+    // Combined reviews (user + friends)
+    private List<ReviewItem> _allReviews = new();
+
+    private record TileData(string? ArtUrl, string? Genre);
+
+    private class ActivityItem
+    {
+        public string GameName { get; set; } = "";
+        public string? ArtUrl { get; set; }
+        public string? Genre { get; set; }
+        public FakeFriend? Friend { get; set; }
+        public DateTime When { get; set; }
+    }
+
+    private class ReviewItem
+    {
+        public string GameName { get; set; } = "";
+        public string? ArtUrl { get; set; }
+        public string? Genre { get; set; }
+        public FakeFriend? Friend { get; set; }
+        public double Score { get; set; }
+        public string ReviewText { get; set; } = "";
+        public DateTime When { get; set; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        if (AuthState.CurrentUser == null) return;
+        // Kick off RAWG popular games for hero + recommendations in parallel
+        var popularTask = RawgService.GetPopularGamesAsync(20);
 
-        var allGames = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
-        GamesList = allGames.Where(g => g.Year == DateTime.Now.Year).ToList();
-
-        var artTasks = GamesList.Where(g => string.IsNullOrEmpty(g.GameArtUrl)).Select(async game =>
+        // Load user data from Firebase
+        if (AuthState.CurrentUser != null)
         {
-            game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
-            await InvokeAsync(StateHasChanged);
+            _allUserGames = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
+            _yearGames = _allUserGames.Where(g => g.Year == DateTime.Now.Year).ToList();
+
+            var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
+            foreach (var (name, status) in statuses)
+            {
+                if (status == "playing") _playing.Add(name);
+            }
+
+            _currentlyPlaying = _allUserGames
+                .Where(g => g.Name != null && _playing.Contains(g.Name))
+                .ToList();
+
+            // Backfill any missing art for user games
+            var userArtTasks = _allUserGames.Where(g => string.IsNullOrEmpty(g.GameArtUrl)).Select(async game =>
+            {
+                game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
+                await InvokeAsync(StateHasChanged);
+            });
+            await Task.WhenAll(userArtTasks);
+        }
+
+        // Wait for popular games and use them for hero + recommendations
+        var popular = await popularTask;
+        _recommendations = popular;
+        _heroBackgroundGames = popular.Select(p => new TileData(p.ArtUrl, p.Genre)).ToList();
+
+        // Build "this year" activity feed from user + friend finishes
+        var friendFinishes = FakeFriends.RecentlyFinished();
+
+        // Fetch art for friend games in parallel (best-effort)
+        var friendArtTasks = friendFinishes.Select(async f =>
+        {
+            f.GameArtUrl = await RawgService.GetGameArtAsync(f.GameName);
         });
-        await Task.WhenAll(artTasks);
+        await Task.WhenAll(friendArtTasks);
 
-        var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
-        foreach (var (name, status) in statuses)
+        var userYearFinishes = _yearGames
+            .Where(g => g.HoursPlayed > 0)
+            .Select(g => new ActivityItem
+            {
+                GameName = g.Name ?? "",
+                ArtUrl   = g.GameArtUrl,
+                Genre    = g.Genre,
+                Friend   = null,
+                When     = DateTime.Now,
+            });
+
+        var friendYearFinishes = friendFinishes.Select(f => new ActivityItem
         {
-            if (status == "playing")       _playing.Add(name);
-            else if (status == "finished") _finished.Add(name);
-        }
+            GameName = f.GameName,
+            ArtUrl   = f.GameArtUrl,
+            Genre    = f.Genre,
+            Friend   = f.Friend,
+            When     = f.When,
+        });
+
+        _yearActivityFeed = userYearFinishes.Concat(friendYearFinishes)
+            .OrderByDescending(a => a.When)
+            .ToList();
+
+        // Build combined reviews feed
+        var friendReviews = FakeFriends.Reviews();
+        var friendReviewArtTasks = friendReviews.Select(async r =>
+        {
+            r.GameArtUrl = await RawgService.GetGameArtAsync(r.GameName);
+        });
+        await Task.WhenAll(friendReviewArtTasks);
+
+        var userReviews = _allUserGames
+            .Where(g => !string.IsNullOrWhiteSpace(g.ReviewText) && g.Review > 0)
+            .Select(g => new ReviewItem
+            {
+                GameName   = g.Name ?? "",
+                ArtUrl     = g.GameArtUrl,
+                Genre      = g.Genre,
+                Friend     = null,
+                Score      = g.Review,
+                ReviewText = g.ReviewText ?? "",
+                When       = DateTime.Now,
+            });
+
+        var friendReviewItems = friendReviews.Select(r => new ReviewItem
+        {
+            GameName   = r.GameName,
+            ArtUrl     = r.GameArtUrl,
+            Genre      = r.Genre,
+            Friend     = r.Friend,
+            Score      = r.Score,
+            ReviewText = r.ReviewText,
+            When       = r.When,
+        });
+
+        _allReviews = userReviews.Concat(friendReviewItems)
+            .OrderByDescending(r => r.When)
+            .ToList();
+
+        StateHasChanged();
     }
 
-    private readonly HashSet<string> _playing  = new();
-    private readonly HashSet<string> _finished = new();
-
-    private async Task TogglePlaying(Games game)
+    private static string RelativeTime(DateTime when)
     {
-        if (!_playing.Add(game.Name!)) _playing.Remove(game.Name!);
-        else _finished.Remove(game.Name!);
-
-        if (AuthState.CurrentUser != null)
-        {
-            var status = _playing.Contains(game.Name!) ? "playing" : "none";
-            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, game.Name!, status);
-        }
-    }
-
-    private async Task ToggleFinished(Games game)
-    {
-        if (!_finished.Add(game.Name!)) _finished.Remove(game.Name!);
-        else _playing.Remove(game.Name!);
-
-        if (AuthState.CurrentUser != null)
-        {
-            var status = _finished.Contains(game.Name!) ? "finished" : "none";
-            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, game.Name!, status);
-        }
+        var span = DateTime.Now - when;
+        if (span.TotalDays >= 30) return $"{(int)(span.TotalDays / 30)}mo ago";
+        if (span.TotalDays >= 1)  return $"{(int)span.TotalDays}d ago";
+        if (span.TotalHours >= 1) return $"{(int)span.TotalHours}h ago";
+        return "just now";
     }
 
     private static MarkupString RenderStars(double score)
