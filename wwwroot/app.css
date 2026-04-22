@@ -222,6 +222,47 @@ html, body {
     flex-shrink: 0;
 }
 
+.add-game-panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.add-game-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #30363d;
+    color: #e6edf3;
+}
+
+.add-game-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #8b949e;
+    display: flex;
+    padding: 4px;
+}
+
+.add-game-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+.add-game-close:hover {
+    color: #e6edf3;
+}
+
+.add-game-panel-body {
+    padding: 1.25rem;
+}
+
 .search-input {
     max-width: 420px;
 }

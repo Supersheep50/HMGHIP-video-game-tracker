@@ -2,7 +2,6 @@
 @inject PlayedGames.Services.RawgService RawgService
 @inject FirebaseService Firebase
 @inject AuthStateService AuthState
-@inject IDialogService DialogService
 
 <PageTitle>Games Library — HMGHIP</PageTitle>
 
@@ -45,11 +44,67 @@
         {
             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="AddGameAsync" Class="add-game-btn">
+                       OnClick="() => _showAddForm = !_showAddForm" Class="add-game-btn">
                 Add Game
             </MudButton>
         }
     </div>
+
+    @if (_showAddForm)
+    {
+        <div class="add-game-panel">
+            <div class="add-game-panel-header">
+                <span>Add Game</span>
+                <button class="add-game-close" @onclick="() => _showAddForm = false">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="add-game-panel-body">
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_newGame.Name" Label="Game Name" Variant="Variant.Outlined" FullWidth="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_newGame.Developer" Label="Developer" Variant="Variant.Outlined" FullWidth="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="_newGame.Genre" Label="Genre" Variant="Variant.Outlined" FullWidth="true">
+                            @foreach (var g in _genres)
+                            {
+                                <MudSelectItem Value="@g">@g</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="_newGame.System" Label="Platform" Variant="Variant.Outlined" FullWidth="true">
+                            @foreach (var s in _systems)
+                            {
+                                <MudSelectItem Value="@s">@s</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudNumericField @bind-Value="_newGame.HoursPlayed" Label="Hours Played" Variant="Variant.Outlined" Min="0.0" FullWidth="true" />
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudNumericField @bind-Value="_newGame.Review" Label="Score (0–10)" Variant="Variant.Outlined" Min="0.0" Max="10.0" Step="0.5" FullWidth="true" />
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudNumericField @bind-Value="_newGame.HowLongToBeat" Label="HLTB (hrs)" Variant="Variant.Outlined" Min="0.0" FullWidth="true" />
+                    </MudItem>
+                    <MudItem xs="6" sm="3">
+                        <MudNumericField @bind-Value="_newGame.Year" Label="Year" Variant="Variant.Outlined" Min="2000" Max="2100" FullWidth="true" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                                   OnClick="SubmitAddGameAsync" Disabled="@string.IsNullOrWhiteSpace(_newGame.Name)">
+                            Add Game
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </div>
+        </div>
+    }
 
     <MudText Typo="Typo.body2" Class="results-count">
         Showing @FilteredGames.Count() of @GamesList.Count games
@@ -177,18 +232,35 @@
         }
     }
 
-    private async Task AddGameAsync()
+    private bool _showAddForm = false;
+    private Games _newGame = new() { Year = DateTime.Now.Year, Review = 7.0 };
+
+    private static readonly string[] _genres =
     {
-        var dialog = await DialogService.ShowAsync<AddGameDialog>("Add Game");
-        var result = await dialog.Result;
-        if (result is { Canceled: false, Data: Games game })
-        {
-            game.GameArtUrl = await RawgService.GetGameArtAsync(game.Name);
-            GamesList.Add(game);
-            if (AuthState.CurrentUser != null)
-                await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, GamesList);
-            StateHasChanged();
-        }
+        "Action", "Action RPG", "Action-Adventure", "JRPG", "Metroidvania",
+        "MMORPG", "Platformer", "Racing", "Roguelike", "RPG", "Simulation",
+        "Sports", "Strategy", "Other"
+    };
+
+    private static readonly string[] _systems =
+    {
+        "PC", "PlayStation 5", "PlayStation 4", "Xbox Series X", "Xbox One",
+        "Nintendo Switch", "Mobile", "Other"
+    };
+
+    private async Task SubmitAddGameAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newGame.Name)) return;
+
+        _newGame.GameArtUrl = await RawgService.GetGameArtAsync(_newGame.Name);
+        GamesList.Add(_newGame);
+
+        if (AuthState.CurrentUser != null)
+            await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, GamesList);
+
+        _newGame = new() { Year = DateTime.Now.Year, Review = 7.0 };
+        _showAddForm = false;
+        StateHasChanged();
     }
 
     private IEnumerable<Games> FilteredGames =>
