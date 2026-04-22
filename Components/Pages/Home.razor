@@ -115,11 +115,10 @@
             <h2 class="section-title">Games Played This Year</h2>
             <span class="section-subtitle">Yours and your friends'</span>
         </div>
-        <div class="auto-carousel">
-            <div class="auto-carousel-track auto-carousel-slow">
-                @foreach (var item in _yearActivityFeed.Concat(_yearActivityFeed))
-                {
-                    <div class="activity-tile" style="background: @GetGenreGradient(item.Genre)">
+        <div class="swipe-row">
+            @foreach (var item in _yearActivityFeed)
+            {
+                <div class="activity-tile" style="background: @GetGenreGradient(item.Genre)">
                         @if (!string.IsNullOrEmpty(item.ArtUrl))
                         {
                             <img src="@item.ArtUrl" alt="" class="activity-tile-img" />
@@ -139,9 +138,8 @@
                                 }
                             </div>
                         </div>
-                    </div>
-                }
-            </div>
+                </div>
+            }
         </div>
     </section>
 
@@ -185,7 +183,7 @@
             <h2 class="section-title">Recent Reviews</h2>
             <span class="section-subtitle">From you and your friends</span>
         </div>
-        <div class="reviews-list">
+        <div class="reviews-row">
             @foreach (var review in _allReviews)
             {
                 <div class="review-card">
