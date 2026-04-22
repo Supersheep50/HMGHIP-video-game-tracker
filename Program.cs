@@ -12,5 +12,6 @@ builder.Services.AddMudServices();
 builder.Services.AddHttpClient<RawgService>();
 builder.Services.AddScoped<AuthStateService>();
 builder.Services.AddScoped<FirebaseService>();
+builder.Services.AddScoped<GameStateService>();
 
 await builder.Build().RunAsync();

@@ -1,8 +1,10 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject IJSRuntime JS
 @inject AuthStateService AuthState
 @inject FirebaseService Firebase
 @inject RawgService RawgService
+@inject GameStateService GameState
 @inject NavigationManager Nav
 
 <MudThemeProvider IsDarkMode="true" />
@@ -86,9 +88,52 @@
                     }
                 </div>
                 <p class="popup-game-name">@_open.Name</p>
-                @if (!string.IsNullOrEmpty(_open.Genre))
+                @if (!string.IsNullOrEmpty(_detail?.Genre ?? _open.Genre))
                 {
-                    <p class="popup-genre">@_open.Genre</p>
+                    <p class="popup-genre">@(_detail?.Genre ?? _open.Genre)</p>
+                }
+
+                @if (_detailLoading && _detail == null)
+                {
+                    <div class="game-detail-loading">Loading details…</div>
+                }
+                else if (_detail != null)
+                {
+                    <dl class="game-detail-meta">
+                        @if (!string.IsNullOrEmpty(_detail.Released))
+                        {
+                            <div><dt>Released</dt><dd>@FormatReleased(_detail.Released)</dd></div>
+                        }
+                        @if (!string.IsNullOrEmpty(_detail.Developer))
+                        {
+                            <div><dt>Developer</dt><dd>@_detail.Developer</dd></div>
+                        }
+                        @if (!string.IsNullOrEmpty(_detail.Publisher))
+                        {
+                            <div><dt>Publisher</dt><dd>@_detail.Publisher</dd></div>
+                        }
+                        @if (_detail.Platforms.Count > 0)
+                        {
+                            <div><dt>Platforms</dt><dd>@string.Join(", ", _detail.Platforms)</dd></div>
+                        }
+                        @if (_detail.Metacritic.HasValue)
+                        {
+                            <div><dt>Metacritic</dt><dd>@_detail.Metacritic</dd></div>
+                        }
+                    </dl>
+                    @if (!string.IsNullOrWhiteSpace(_detail.Description))
+                    {
+                        <div class="game-detail-about">
+                            <h4 class="game-detail-about-title">About</h4>
+                            <p class="game-detail-about-text @(_aboutExpanded ? "expanded" : "")">@_detail.Description</p>
+                            @if (_detail.Description.Length > 280)
+                            {
+                                <button class="game-detail-about-toggle" @onclick="() => _aboutExpanded = !_aboutExpanded">
+                                    @(_aboutExpanded ? "Show less" : "Read more")
+                                </button>
+                            }
+                        </div>
+                    }
                 }
 
                 @if (AuthState.CurrentUser == null)
@@ -183,6 +228,8 @@
 
     // Detail popup state
     private RawgSearchResult? _open;
+    private RawgGameDetail?   _detail;
+    private bool              _detailLoading;
     private string _mode = "actions";
     private bool _isPlaying;
     private bool _isFinished;
@@ -191,6 +238,7 @@
     private int _stars = 3;
     private string _reviewText = "";
     private bool _saving;
+    private bool _aboutExpanded;
 
     // ── Search ────────────────────────────────────────────────────────────
 
@@ -236,6 +284,8 @@
     private async Task OpenGame(RawgSearchResult r)
     {
         _open = r;
+        _detail = null;
+        _detailLoading = true;
         _mode = "actions";
         _isPlaying = false;
         _isFinished = false;
@@ -245,6 +295,9 @@
         _reviewText = "";
 
         ClearSearch();
+
+        // Fetch RAWG details in the background — doesn't block opening
+        _ = LoadDetailAsync(r.Name);
 
         if (AuthState.CurrentUser == null) return;
 
@@ -268,9 +321,21 @@
         StateHasChanged();
     }
 
+    private async Task LoadDetailAsync(string name)
+    {
+        var d = await RawgService.GetGameDetailsAsync(name);
+        // Guard: user may have closed/switched popup before details arrive
+        if (_open == null || !string.Equals(_open.Name, name, StringComparison.OrdinalIgnoreCase)) return;
+        _detail = d;
+        _detailLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
     private void CloseDetail()
     {
         _open = null;
+        _detail = null;
+        _aboutExpanded = false;
         _mode = "actions";
     }
 
@@ -305,6 +370,7 @@
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
 
         _saving = false;
+        GameState.NotifyChanged();
     }
 
     private async Task SaveFinished()
@@ -322,6 +388,7 @@
         _isPlaying  = false;
         _mode = "actions";
         _saving = false;
+        GameState.NotifyChanged();
     }
 
     private async Task SaveReview()
@@ -338,6 +405,14 @@
         _existingReview = game.Review;
         _mode = "actions";
         _saving = false;
+        GameState.NotifyChanged();
+    }
+
+    private static string FormatReleased(string iso)
+    {
+        // RAWG returns "YYYY-MM-DD"
+        if (DateTime.TryParse(iso, out var dt)) return dt.ToString("MMM d, yyyy");
+        return iso;
     }
 
     private static string GenreGradient(string? genre) => genre switch
@@ -364,8 +439,20 @@
             try { await JS.InvokeVoidAsync("_appReady"); } catch { }
     }
 
+    private async void OnOpenGameRequested(string name, string? artUrl, string? genre)
+    {
+        await OpenGame(new RawgSearchResult(name, artUrl, genre));
+    }
+
+    public void Dispose()
+    {
+        GameState.OnOpenGameRequested -= OnOpenGameRequested;
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        GameState.OnOpenGameRequested += OnOpenGameRequested;
+
         if (!AuthState.IsAuthenticated)
         {
             var user = await Firebase.GetCurrentUserAsync();

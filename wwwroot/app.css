@@ -2920,6 +2920,93 @@ html, body {
 }
 
 /* =========================================
+   Game Detail — Meta + About
+   ========================================= */
+.game-detail-loading {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    padding: 0.5rem 0 1rem;
+}
+
+.game-detail-meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    margin: 0 0 1rem;
+    padding: 0.85rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+}
+
+.game-detail-meta > div {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 0.6rem;
+    align-items: baseline;
+}
+
+.game-detail-meta dt {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
+}
+
+.game-detail-meta dd {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
+.game-detail-about {
+    margin: 0 0 1rem;
+}
+
+.game-detail-about-title {
+    margin: 0 0 0.4rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-light);
+    font-weight: 700;
+}
+
+.game-detail-about-text {
+    margin: 0;
+    color: var(--text-secondary, #cbd5e1);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+            line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.game-detail-about-text.expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+            line-clamp: unset;
+    overflow: visible;
+}
+
+.game-detail-about-toggle {
+    margin-top: 0.4rem;
+    background: none;
+    border: none;
+    color: var(--accent-light);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+.game-detail-about-toggle:hover { text-decoration: underline; }
+
+/* =========================================
    Swipeable Horizontal Rows
    ========================================= */
 .swipe-row,
@@ -2951,3 +3038,227 @@ html, body {
     width: 320px;
     max-width: 80vw;
 }
+
+/* ── Currently Playing horizontal cards ───────────────────────────── */
+.playing-row { gap: 14px; }
+
+.playing-card {
+    width: 220px;
+    max-width: 70vw;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    flex-direction: column;
+}
+.playing-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
+}
+
+.playing-card-art {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.playing-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.playing-card-body {
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.playing-card-name {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #f5f5f7;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.playing-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.65);
+}
+.playing-card-genre {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+.playing-card-hours { padding: 2px 0; opacity: 0.75; }
+
+/* ── Generic clickable affordance ─────────────────────────────────── */
+.clickable-tile { cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.clickable-tile:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32); }
+
+/* ── Expanded review modal ────────────────────────────────────────── */
+.review-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 8, 14, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.18s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.review-modal {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    max-height: 92vh;
+    overflow-y: auto;
+    background: #14141c;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    color: #f5f5f7;
+}
+
+.review-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: none;
+    color: #f5f5f7;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.review-modal-close:hover { background: rgba(255, 255, 255, 0.12); }
+
+.review-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-right: 36px;
+}
+.review-avatar-lg { width: 44px; height: 44px; font-size: 0.85rem; }
+.review-modal-author-block { flex: 1; }
+.review-modal-author { font-weight: 600; font-size: 1rem; }
+.review-modal-when { font-size: 0.78rem; color: rgba(255, 255, 255, 0.55); }
+.review-score-pill-lg { font-size: 1.1rem; padding: 6px 14px; }
+
+.review-modal-game-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+.review-modal-art {
+    width: 72px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+.review-modal-game { font-weight: 600; font-size: 1.05rem; margin-bottom: 2px; }
+.review-modal-genre { font-size: 0.78rem; color: rgba(255, 255, 255, 0.6); margin-bottom: 6px; }
+
+.review-modal-text {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.88);
+    margin: 0 0 16px;
+    white-space: pre-wrap;
+}
+
+.review-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.review-upvote {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f5f5f7;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.review-upvote:hover { background: rgba(255, 255, 255, 0.1); }
+.review-upvote-on {
+    background: rgba(56, 189, 248, 0.16);
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #7dd3fc;
+}
+
+.review-modal-comment { display: flex; flex-direction: column; gap: 10px; }
+.review-comment-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #f5f5f7;
+    font: inherit;
+    resize: vertical;
+}
+.review-comment-input:focus { outline: none; border-color: rgba(125, 211, 252, 0.5); }
+
+.review-comment-actions { display: flex; justify-content: flex-end; }
+.review-comment-post {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.review-comment-post:disabled { opacity: 0.4; cursor: not-allowed; }
+.review-comment-post:not(:disabled):hover { background: #1d4ed8; }
+
+.review-comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 6px;
+}
+.review-comment-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.review-comment-when { font-size: 0.7rem; color: rgba(255, 255, 255, 0.5); margin-bottom: 2px; }
+.review-comment-body { font-size: 0.9rem; color: rgba(255, 255, 255, 0.88); }

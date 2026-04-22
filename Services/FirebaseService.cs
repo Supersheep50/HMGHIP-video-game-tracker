@@ -74,24 +74,18 @@ namespace PlayedGames.Services
             try { await _js.InvokeVoidAsync("firestoreSaveGames", userId, games); } catch { }
         }
 
+        private static readonly JsonSerializerOptions _gamesOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
         public async Task<List<Games>> GetGamesAsync(string userId)
         {
             try
             {
                 var result = await _js.InvokeAsync<JsonElement>("firestoreGetGames", userId);
-                return result.EnumerateArray().Select(el => new Games
-                {
-                    Name          = el.TryGetProperty("Name",          out var n)  ? n.GetString()  : null,
-                    Genre         = el.TryGetProperty("Genre",         out var g)  ? g.GetString()  : null,
-                    System        = el.TryGetProperty("System",        out var s)  ? s.GetString()  : null,
-                    Developer     = el.TryGetProperty("Developer",     out var d)  ? d.GetString()  : null,
-                    HoursPlayed   = el.TryGetProperty("HoursPlayed",   out var h)  ? h.GetDouble()  : 0,
-                    Review        = el.TryGetProperty("Review",        out var r)  ? r.GetDouble()  : 0,
-                    HowLongToBeat = el.TryGetProperty("HowLongToBeat", out var lb) ? lb.GetDouble() : 0,
-                    GameArtUrl    = el.TryGetProperty("GameArtUrl",    out var a)  ? a.GetString()  : null,
-                    Year          = el.TryGetProperty("Year",          out var y)  ? y.GetInt32()   : DateTime.Now.Year,
-                    ReviewText    = el.TryGetProperty("ReviewText",    out var rt) ? rt.GetString() : null,
-                }).ToList();
+                if (result.ValueKind != JsonValueKind.Array) return new();
+                return JsonSerializer.Deserialize<List<Games>>(result.GetRawText(), _gamesOptions) ?? new();
             }
             catch { return new List<Games>(); }
         }
