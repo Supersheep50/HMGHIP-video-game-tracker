@@ -342,6 +342,7 @@
     protected override async Task OnInitializedAsync()
     {
         GameState.OnChanged += OnGamesChanged;
+        AuthState.OnChange  += OnAuthChanged;
 
         // Kick off RAWG popular games for hero + recommendations in parallel
         var popularTask = RawgService.GetPopularGamesAsync(20);
@@ -453,6 +454,19 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private async void OnAuthChanged()
+    {
+        await LoadUserDataAsync();
+        RebuildFeeds();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        GameState.OnChanged -= OnGamesChanged;
+        AuthState.OnChange  -= OnAuthChanged;
+    }
+
     // ── Expanded review modal state (UI only, not persisted) ─────────────
     private ReviewItem? _openReview;
     private bool       _reviewUpvoted;
@@ -482,11 +496,6 @@
         if (string.IsNullOrWhiteSpace(_reviewComment)) return;
         _reviewComments.Insert(0, _reviewComment.Trim());
         _reviewComment = "";
-    }
-
-    public void Dispose()
-    {
-        GameState.OnChanged -= OnGamesChanged;
     }
 
     private static string RelativeTime(DateTime when)

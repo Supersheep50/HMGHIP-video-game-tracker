@@ -208,7 +208,9 @@
 
         // Record when the page started loading
         const bootStart = Date.now();
-        const MIN_MS = 4000; // must show for at least 4 seconds
+        // First-time visitors get the full intro; returning users get a quick splash
+        const isReturning = localStorage.getItem('hmghip_visited') === '1';
+        const MIN_MS = isReturning ? 600 : 4000;
 
         // Called by MainLayout once Blazor has fully rendered
         window._appReady = function () {
@@ -220,6 +222,7 @@
                 if (!screen) return;
                 screen.classList.add('boot-done');
                 setTimeout(() => screen.remove(), 500);
+                localStorage.setItem('hmghip_visited', '1');
             }, remaining);
         };
     </script>
