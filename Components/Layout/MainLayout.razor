@@ -143,6 +143,18 @@
                 else
                 {
                     <div class="card-actions detail-actions">
+                        <button class="card-action-btn card-action-want @(_isWantToPlay ? "action-active" : "")"
+                                @onclick="ToggleWantToPlay" disabled="@_saving">
+                            @if (_isWantToPlay)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+                            }
+                            else
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15-5-2.18L7 18V5h10v13z"/></svg>
+                            }
+                            Want to Play
+                        </button>
                         <button class="card-action-btn card-action-playing @(_isPlaying ? "action-active" : "")"
                                 @onclick="TogglePlaying" disabled="@_saving">
                             @if (_isPlaying)
@@ -179,8 +191,53 @@
             {
                 <p class="popup-title">Mark as Finished</p>
                 <p class="popup-game-name">@_open.Name</p>
-                <MudNumericField @bind-Value="_hours" Label="Hours Played" Variant="Variant.Outlined"
-                                 Min="0.0" Step="0.5" Class="mb-4" FullWidth="true" />
+
+                <div class="finished-form">
+                    <div class="finished-field">
+                        <label class="finished-label">Platform</label>
+                        <MudSelect T="string" @bind-Value="_platform" Variant="Variant.Outlined"
+                                   Dense="true" FullWidth="true" Placeholder="Pick a platform">
+                            @foreach (var p in AvailablePlatforms)
+                            {
+                                <MudSelectItem T="string" Value="@p">@p</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </div>
+
+                    <div class="finished-field">
+                        <label class="finished-label">Hours Played</label>
+                        <MudNumericField @bind-Value="_hours" Variant="Variant.Outlined"
+                                         Min="0.0" Step="0.5" FullWidth="true" />
+                    </div>
+
+                    <div class="finished-field">
+                        <label class="finished-label">Rating</label>
+                        <div class="star-rating-row">
+                            <MudRating @bind-SelectedValue="_stars" MaxValue="5" Color="Color.Warning" />
+                            <span class="star-score-label">@(_stars * 2) / 10</span>
+                        </div>
+                    </div>
+
+                    <div class="finished-field">
+                        <label class="finished-label">Review</label>
+                        <MudTextField @bind-Value="_reviewText" Lines="3" Placeholder="Your thoughts (optional)..."
+                                      Variant="Variant.Outlined" FullWidth="true" />
+                    </div>
+
+                    <button class="like-btn @(_liked ? "like-btn-on" : "")" @onclick="() => _liked = !_liked" type="button">
+                        @if (_liked)
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                            <span>Liked</span>
+                        }
+                        else
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zM12 19.55l-.1-.1C7.14 15.24 4 12.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 3.89-3.14 6.74-7.9 11.05l-.1.1z"/></svg>
+                            <span>Like</span>
+                        }
+                    </button>
+                </div>
+
                 <div class="popup-actions">
                     <MudButton Variant="Variant.Text" OnClick='() => _mode = "actions"'>Back</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveFinished" Disabled="_saving">
@@ -233,12 +290,23 @@
     private string _mode = "actions";
     private bool _isPlaying;
     private bool _isFinished;
+    private bool _isWantToPlay;
+    private bool _liked;
     private double _existingReview;
     private double _hours;
+    private string _platform = "";
     private int _stars = 3;
     private string _reviewText = "";
     private bool _saving;
     private bool _aboutExpanded;
+
+    private static readonly string[] FallbackPlatforms = new[]
+    {
+        "PC", "PlayStation 5", "PlayStation 4", "Xbox Series X/S", "Xbox One",
+        "Nintendo Switch", "iOS", "Android", "Steam Deck", "Mac"
+    };
+    private IEnumerable<string> AvailablePlatforms =>
+        (_detail?.Platforms is { Count: > 0 } p ? p : FallbackPlatforms);
 
     // ── Search ────────────────────────────────────────────────────────────
 
@@ -281,16 +349,19 @@
 
     // ── Detail popup ──────────────────────────────────────────────────────
 
-    private async Task OpenGame(RawgSearchResult r)
+    private async Task OpenGame(RawgSearchResult r, string mode = "actions")
     {
         _open = r;
         _detail = null;
         _detailLoading = true;
-        _mode = "actions";
+        _mode = mode;
         _isPlaying = false;
         _isFinished = false;
+        _isWantToPlay = false;
+        _liked = false;
         _existingReview = 0;
         _hours = 0;
+        _platform = "";
         _stars = 3;
         _reviewText = "";
 
@@ -304,8 +375,9 @@
         var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
         if (statuses.TryGetValue(r.Name, out var status))
         {
-            _isPlaying  = status == "playing";
-            _isFinished = status == "finished";
+            _isPlaying     = status == "playing";
+            _isFinished    = status == "finished";
+            _isWantToPlay  = status == "want_to_play";
         }
 
         var games = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
@@ -314,6 +386,8 @@
         if (existing != null)
         {
             _hours          = existing.HoursPlayed;
+            _platform       = existing.System ?? "";
+            _liked          = existing.Liked;
             _existingReview = existing.Review;
             if (existing.Review > 0) _stars = (int)Math.Round(existing.Review / 2.0);
             _reviewText     = existing.ReviewText ?? "";
@@ -361,9 +435,27 @@
         _saving = true;
 
         _isPlaying = !_isPlaying;
-        if (_isPlaying) _isFinished = false;
+        if (_isPlaying) { _isFinished = false; _isWantToPlay = false; }
 
         var status = _isPlaying ? "playing" : "none";
+        await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _open.Name, status);
+
+        var games = await EnsureSavedAsync();
+        await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
+
+        _saving = false;
+        GameState.NotifyChanged();
+    }
+
+    private async Task ToggleWantToPlay()
+    {
+        if (_open == null || AuthState.CurrentUser == null) return;
+        _saving = true;
+
+        _isWantToPlay = !_isWantToPlay;
+        if (_isWantToPlay) { _isPlaying = false; _isFinished = false; }
+
+        var status = _isWantToPlay ? "want_to_play" : "none";
         await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _open.Name, status);
 
         var games = await EnsureSavedAsync();
@@ -381,11 +473,17 @@
         var games = await EnsureSavedAsync();
         var game = games.First(g => string.Equals(g.Name, _open.Name, StringComparison.OrdinalIgnoreCase));
         game.HoursPlayed = _hours;
+        game.System      = string.IsNullOrWhiteSpace(_platform) ? null : _platform;
+        game.Liked       = _liked;
+        if (_stars > 0) game.Review = _stars * 2.0;
+        if (!string.IsNullOrWhiteSpace(_reviewText)) game.ReviewText = _reviewText;
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
         await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _open.Name, "finished");
 
+        _existingReview = game.Review;
         _isFinished = true;
         _isPlaying  = false;
+        _isWantToPlay = false;
         _mode = "actions";
         _saving = false;
         GameState.NotifyChanged();
@@ -439,9 +537,9 @@
             try { await JS.InvokeVoidAsync("_appReady"); } catch { }
     }
 
-    private async void OnOpenGameRequested(string name, string? artUrl, string? genre)
+    private async void OnOpenGameRequested(string name, string? artUrl, string? genre, string mode)
     {
-        await OpenGame(new RawgSearchResult(name, artUrl, genre));
+        await OpenGame(new RawgSearchResult(name, artUrl, genre), mode);
     }
 
     public void Dispose()

@@ -5,6 +5,8 @@ namespace PlayedGames.Services
 {
     public record RawgSearchResult(string Name, string? ArtUrl, string? Genre);
 
+    public record RawgUpcomingGame(string Name, string? ArtUrl, string? Genre, string? Released);
+
     public record RawgGameDetail(
         string        Name,
         string?       ArtUrl,
@@ -58,6 +60,29 @@ namespace PlayedGames.Services
                         r.Name!,
                         r.BackgroundImage,
                         r.Genres?.FirstOrDefault()?.Name))
+                    .ToList() ?? new();
+            }
+            catch { return new(); }
+        }
+
+        public async Task<List<RawgUpcomingGame>> GetUpcomingGamesAsync(int pageSize = 15)
+        {
+            if (string.IsNullOrEmpty(_apiKey)) return new();
+
+            var from = DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-dd");
+            var to   = DateTime.UtcNow.AddYears(1).ToString("yyyy-MM-dd");
+            var url  = $"https://api.rawg.io/api/games?key={_apiKey}&dates={from},{to}&ordering=released&page_size={pageSize}";
+
+            try
+            {
+                var response = await _http.GetFromJsonAsync<RawgResponse>(url);
+                return response?.Results?
+                    .Where(r => !string.IsNullOrEmpty(r.Name))
+                    .Select(r => new RawgUpcomingGame(
+                        r.Name!,
+                        r.BackgroundImage,
+                        r.Genres?.FirstOrDefault()?.Name,
+                        r.Released))
                     .ToList() ?? new();
             }
             catch { return new(); }
@@ -146,6 +171,9 @@ namespace PlayedGames.Services
 
         [JsonPropertyName("genres")]
         public List<RawgGenre>? Genres { get; set; }
+
+        [JsonPropertyName("released")]
+        public string? Released { get; set; }
     }
 
     file class RawgGenre

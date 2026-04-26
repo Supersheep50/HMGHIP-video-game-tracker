@@ -12,5 +12,6 @@ namespace PlayedGames.Modals
         public string? GameArtUrl { get; set; }
         public int Year { get; set; } = DateTime.Now.Year;
         public string? ReviewText { get; set; }
+        public bool Liked { get; set; }
     }
 }

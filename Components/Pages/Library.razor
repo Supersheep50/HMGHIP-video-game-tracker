@@ -1,7 +1,9 @@
 @page "/library"
+@implements IDisposable
 @inject RawgService RawgService
 @inject FirebaseService Firebase
 @inject AuthStateService AuthState
+@inject GameStateService GameState
 
 <PageTitle>Games Library — HMGHIP</PageTitle>
 
@@ -92,26 +94,23 @@
                                 </div>
                             </MudCardContent>
                             <div class="card-actions">
+                                <button class="card-action-btn card-action-want @(_wantToPlay.Contains(result.Name) ? "action-active" : "")"
+                                        @onclick="() => GameState.RequestOpenGame(result.Name, result.ArtUrl, result.Genre)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+                                    Want
+                                </button>
                                 <button class="card-action-btn card-action-playing @(_playing.Contains(result.Name) ? "action-active" : "")"
-                                        @onclick="() => TogglePlaying(result.Name, result.ArtUrl, result.Genre)">
-                                    @if (_playing.Contains(result.Name)) {
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                    } else {
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                                    }
+                                        @onclick="() => GameState.RequestOpenGame(result.Name, result.ArtUrl, result.Genre)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                                     Playing
                                 </button>
                                 <button class="card-action-btn card-action-finished @(_finished.Contains(result.Name) ? "action-active" : "")"
-                                        @onclick="() => HandleFinishedClick(result.Name, result.ArtUrl, result.Genre)">
-                                    @if (_finished.Contains(result.Name)) {
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                    } else {
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                                    }
+                                        @onclick='() => GameState.RequestOpenGame(result.Name, result.ArtUrl, result.Genre, "finished")'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                                     Finished
                                 </button>
                                 <button class="card-action-btn card-action-review @(saved?.Review > 0 ? "action-active" : "")"
-                                        @onclick="() => OpenReviewPopup(result.Name, result.ArtUrl, result.Genre)">
+                                        @onclick='() => GameState.RequestOpenGame(result.Name, result.ArtUrl, result.Genre, "review")'>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                                     Review
                                 </button>
@@ -203,26 +202,23 @@
                                 </div>
                             </MudCardContent>
                             <div class="card-actions">
+                                <button class="card-action-btn card-action-want @(_wantToPlay.Contains(game.Name!) ? "action-active" : "")"
+                                        @onclick="() => GameState.RequestOpenGame(game.Name!, game.GameArtUrl, game.Genre)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+                                    Want
+                                </button>
                                 <button class="card-action-btn card-action-playing @(_playing.Contains(game.Name!) ? "action-active" : "")"
-                                        @onclick="() => TogglePlaying(game.Name!, game.GameArtUrl, game.Genre)">
-                                    @if (_playing.Contains(game.Name!)) {
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                    } else {
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                                    }
+                                        @onclick="() => GameState.RequestOpenGame(game.Name!, game.GameArtUrl, game.Genre)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                                     Playing
                                 </button>
                                 <button class="card-action-btn card-action-finished @(_finished.Contains(game.Name!) ? "action-active" : "")"
-                                        @onclick="() => HandleFinishedClick(game.Name!, game.GameArtUrl, game.Genre)">
-                                    @if (_finished.Contains(game.Name!)) {
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                    } else {
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                                    }
+                                        @onclick='() => GameState.RequestOpenGame(game.Name!, game.GameArtUrl, game.Genre, "finished")'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                                     Finished
                                 </button>
                                 <button class="card-action-btn card-action-review @(game.Review > 0 ? "action-active" : "")"
-                                        @onclick="() => OpenReviewPopup(game.Name!, game.GameArtUrl, game.Genre)">
+                                        @onclick='() => GameState.RequestOpenGame(game.Name!, game.GameArtUrl, game.Genre, "review")'>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                                     Review
                                 </button>
@@ -237,81 +233,57 @@
 
 </MudContainer>
 
-@if (_finishedGame != null)
-{
-    <div class="popup-overlay" @onclick="CloseFinishedPopup">
-        <div class="popup-sheet" @onclick:stopPropagation>
-            <div class="popup-handle-bar"></div>
-            <p class="popup-title">Mark as Finished</p>
-            <p class="popup-game-name">@_finishedGame</p>
-            <MudNumericField @bind-Value="_finishedHours" Label="Hours Played" Variant="Variant.Outlined"
-                             Min="0.0" Step="0.5" Class="mb-4" FullWidth="true" />
-            <div class="popup-actions">
-                <MudButton Variant="Variant.Text" OnClick="CloseFinishedPopup">Cancel</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitFinished">Save</MudButton>
-            </div>
-        </div>
-    </div>
-}
-
-@if (_reviewGame != null)
-{
-    <div class="popup-overlay" @onclick="CloseReviewPopup">
-        <div class="popup-sheet" @onclick:stopPropagation>
-            <div class="popup-handle-bar"></div>
-            <p class="popup-title">Write a Review</p>
-            <p class="popup-game-name">@_reviewGame</p>
-            <div class="star-rating-row">
-                <MudRating @bind-SelectedValue="_reviewStars" MaxValue="5" Color="Color.Warning" />
-                <span class="star-score-label">@(_reviewStars * 2) / 10</span>
-            </div>
-            <MudTextField @bind-Value="_reviewText" Label="Your thoughts..." Lines="4"
-                          Variant="Variant.Outlined" Class="mb-4" FullWidth="true" />
-            <div class="popup-actions">
-                <MudButton Variant="Variant.Text" OnClick="CloseReviewPopup">Cancel</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                           OnClick="SubmitReview" Disabled="@(_reviewStars == 0)">
-                    Save Review
-                </MudButton>
-            </div>
-        </div>
-    </div>
-}
-
 @code {
     private List<Games> _savedGames = new();
     private List<RawgSearchResult> _searchResults = new();
     private string _searchQuery = "";
     private bool _isSearching;
 
-    private readonly HashSet<string> _playing  = new();
-    private readonly HashSet<string> _finished = new();
-
-    // Finished popup
-    private string? _finishedGame;
-    private string? _finishedGameArt;
-    private string? _finishedGameGenre;
-    private double  _finishedHours;
-
-    // Review popup
-    private string? _reviewGame;
-    private string? _reviewGameArt;
-    private string? _reviewGameGenre;
-    private int     _reviewStars = 3;
-    private string  _reviewText  = "";
+    private readonly HashSet<string> _playing    = new();
+    private readonly HashSet<string> _finished   = new();
+    private readonly HashSet<string> _wantToPlay = new();
 
     protected override async Task OnInitializedAsync()
+    {
+        GameState.OnChanged += OnGamesChanged;
+        AuthState.OnChange  += OnAuthChanged;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
     {
         if (AuthState.CurrentUser == null) return;
 
         _savedGames = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
 
+        _playing.Clear();
+        _finished.Clear();
+        _wantToPlay.Clear();
         var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
         foreach (var (name, status) in statuses)
         {
-            if (status == "playing")       _playing.Add(name);
-            else if (status == "finished") _finished.Add(name);
+            if (status == "playing")           _playing.Add(name);
+            else if (status == "finished")     _finished.Add(name);
+            else if (status == "want_to_play") _wantToPlay.Add(name);
         }
+    }
+
+    private async void OnGamesChanged()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void OnAuthChanged()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        GameState.OnChanged -= OnGamesChanged;
+        AuthState.OnChange  -= OnAuthChanged;
     }
 
     // ── Search ────────────────────────────────────────────────────────────
@@ -327,107 +299,6 @@
         StateHasChanged();
         _searchResults = await RawgService.SearchGamesAsync(query);
         _isSearching = false;
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
-
-    private Games GetOrCreate(string name, string? artUrl, string? genre)
-    {
-        var existing = _savedGames.FirstOrDefault(g =>
-            string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase));
-        if (existing != null) return existing;
-
-        var game = new Games { Name = name, GameArtUrl = artUrl, Genre = genre ?? "Other", Year = DateTime.Now.Year };
-        _savedGames.Add(game);
-        return game;
-    }
-
-    // ── Playing ───────────────────────────────────────────────────────────
-
-    private async Task TogglePlaying(string name, string? artUrl, string? genre)
-    {
-        GetOrCreate(name, artUrl, genre);
-
-        if (!_playing.Add(name)) _playing.Remove(name);
-        else _finished.Remove(name);
-
-        if (AuthState.CurrentUser != null)
-        {
-            var status = _playing.Contains(name) ? "playing" : "none";
-            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, name, status);
-            await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, _savedGames);
-        }
-    }
-
-    // ── Finished ──────────────────────────────────────────────────────────
-
-    private async Task HandleFinishedClick(string name, string? artUrl, string? genre)
-    {
-        if (_finished.Contains(name))
-        {
-            _finished.Remove(name);
-            if (AuthState.CurrentUser != null)
-                await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, name, "none");
-        }
-        else
-        {
-            var existing = _savedGames.FirstOrDefault(g =>
-                string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase));
-            _finishedGame    = name;
-            _finishedGameArt = artUrl;
-            _finishedGameGenre = genre;
-            _finishedHours   = existing?.HoursPlayed ?? 0;
-        }
-    }
-
-    private void CloseFinishedPopup() => _finishedGame = null;
-
-    private async Task SubmitFinished()
-    {
-        if (_finishedGame == null) return;
-
-        var game = GetOrCreate(_finishedGame, _finishedGameArt, _finishedGameGenre);
-        game.HoursPlayed = _finishedHours;
-
-        _finished.Add(_finishedGame);
-        _playing.Remove(_finishedGame);
-
-        if (AuthState.CurrentUser != null)
-        {
-            await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _finishedGame, "finished");
-            await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, _savedGames);
-        }
-
-        CloseFinishedPopup();
-    }
-
-    // ── Review ────────────────────────────────────────────────────────────
-
-    private void OpenReviewPopup(string name, string? artUrl, string? genre)
-    {
-        var existing = _savedGames.FirstOrDefault(g =>
-            string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase));
-        _reviewGame    = name;
-        _reviewGameArt = artUrl;
-        _reviewGameGenre = genre;
-        _reviewStars   = existing?.Review > 0 ? (int)Math.Round(existing.Review / 2.0) : 3;
-        _reviewText    = existing?.ReviewText ?? "";
-    }
-
-    private void CloseReviewPopup() => _reviewGame = null;
-
-    private async Task SubmitReview()
-    {
-        if (_reviewGame == null) return;
-
-        var game = GetOrCreate(_reviewGame, _reviewGameArt, _reviewGameGenre);
-        game.Review     = _reviewStars * 2.0;
-        game.ReviewText = _reviewText;
-
-        if (AuthState.CurrentUser != null)
-            await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, _savedGames);
-
-        CloseReviewPopup();
     }
 
     // ── Display helpers ───────────────────────────────────────────────────

@@ -1380,17 +1380,21 @@ html, body {
 
 .card-action-btn {
     flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    padding: 0.65rem 0.25rem;
+    gap: 0.3rem;
+    padding: 0.65rem 0.2rem;
     border: none;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     cursor: pointer;
     transition: background 0.18s, color 0.18s, padding 0.18s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .card-action-btn svg {
@@ -1456,6 +1460,77 @@ html, body {
 .card-action-review.action-active {
     background: rgba(234, 179, 8, 0.28);
     color: #fde047;
+}
+
+/* Want to Play — sky blue */
+.card-action-want {
+    background: rgba(56, 189, 248, 0.12);
+    color: #7dd3fc;
+}
+.card-action-want:hover { background: rgba(56, 189, 248, 0.22); }
+.card-action-want.action-active {
+    background: rgba(56, 189, 248, 0.3);
+    color: #bae6fd;
+}
+
+/* ── Finished form (rich) ─────────────────────────────────────────── */
+.finished-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 8px 0 16px;
+}
+.finished-field { display: flex; flex-direction: column; gap: 6px; }
+.finished-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.like-btn {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.78);
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.like-btn:hover {
+    background: rgba(244, 63, 94, 0.12);
+    border-color: rgba(244, 63, 94, 0.35);
+    color: #fda4af;
+}
+.like-btn svg { width: 18px; height: 18px; }
+.like-btn-on {
+    background: rgba(244, 63, 94, 0.22);
+    border-color: rgba(244, 63, 94, 0.55);
+    color: #fb7185;
+}
+.like-btn-on:hover { background: rgba(244, 63, 94, 0.28); }
+
+/* ── Coming Soon release pill ─────────────────────────────────────── */
+.release-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #f5f5f7;
 }
 
 /* ── Popup overlay ────────────────────────────────────────────────────── */

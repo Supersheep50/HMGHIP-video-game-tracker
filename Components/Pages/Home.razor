@@ -173,6 +173,44 @@
         </div>
     </section>
 
+    @* ── Coming Soon ─────────────────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Coming Soon</h2>
+            <span class="section-subtitle">Upcoming releases</span>
+        </div>
+        @if (!_upcoming.Any())
+        {
+            <div class="section-empty">
+                <MudIcon Icon="@Icons.Material.Filled.Event" Style="font-size: 2.5rem; opacity: 0.3;" />
+                <span>Loading upcoming releases…</span>
+            </div>
+        }
+        else
+        {
+            <div class="swipe-row">
+                @foreach (var u in _upcoming)
+                {
+                    <div class="activity-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(u.Name, u.ArtUrl, u.Genre)" style="background: @GetGenreGradient(u.Genre)">
+                        @if (!string.IsNullOrEmpty(u.ArtUrl))
+                        {
+                            <img src="@u.ArtUrl" alt="" class="activity-tile-img" />
+                        }
+                        <div class="activity-tile-overlay">
+                            <div class="activity-tile-game">@u.Name</div>
+                            <div class="activity-tile-meta">
+                                <span class="release-pill">
+                                    <MudIcon Icon="@Icons.Material.Filled.Event" Size="Size.Small" Style="font-size: 0.9rem;" />
+                                    @FormatRelease(u.Released)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
     @* ── Reviews ─────────────────────────────────────────────────────── *@
     <section class="home-section">
         <div class="section-head">
@@ -307,6 +345,9 @@
     // Recommendations carousel
     private List<RawgSearchResult> _recommendations = new();
 
+    // Coming Soon — upcoming RAWG releases
+    private List<RawgUpcomingGame> _upcoming = new();
+
     // Combined "this year" feed (user finishes + friend finishes)
     private List<ActivityItem> _yearActivityFeed = new();
 
@@ -344,8 +385,9 @@
         GameState.OnChanged += OnGamesChanged;
         AuthState.OnChange  += OnAuthChanged;
 
-        // Kick off RAWG popular games for hero + recommendations in parallel
-        var popularTask = RawgService.GetPopularGamesAsync(20);
+        // Kick off RAWG popular + upcoming games in parallel
+        var popularTask  = RawgService.GetPopularGamesAsync(20);
+        var upcomingTask = RawgService.GetUpcomingGamesAsync(15);
 
         await LoadUserDataAsync();
 
@@ -353,6 +395,8 @@
         var popular = await popularTask;
         _recommendations     = popular;
         _heroBackgroundGames = popular.Select(p => new TileData(p.ArtUrl, p.Genre)).ToList();
+
+        _upcoming = await upcomingTask;
 
         // Load friend data + art (one-time)
         _friendFinishes = FakeFriends.RecentlyFinished();
@@ -496,6 +540,16 @@
         if (string.IsNullOrWhiteSpace(_reviewComment)) return;
         _reviewComments.Insert(0, _reviewComment.Trim());
         _reviewComment = "";
+    }
+
+    private static string FormatRelease(string? iso)
+    {
+        if (string.IsNullOrEmpty(iso) || !DateTime.TryParse(iso, out var dt)) return "TBA";
+        var days = (dt.Date - DateTime.UtcNow.Date).TotalDays;
+        if (days <= 0)  return "Out now";
+        if (days <= 7)  return $"In {(int)days}d";
+        if (dt.Year == DateTime.UtcNow.Year) return dt.ToString("MMM d");
+        return dt.ToString("MMM yyyy");
     }
 
     private static string RelativeTime(DateTime when)
