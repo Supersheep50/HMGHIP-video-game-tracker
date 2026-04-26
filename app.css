@@ -83,7 +83,7 @@ html, body {
     gap: 6px;
     height: 100%;
     width: max-content;
-    animation: carouselScroll 40s linear infinite;
+    animation: carouselScroll 90s linear infinite;
 }
 
 @keyframes carouselScroll {
