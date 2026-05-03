@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "PlayedGames",
   "resources": {
-    "hash": "sha256-MmEB3+A4ps9iJXXwFiwxS6lzy9Kf/dyKWZoRKmGI4So=",
+    "hash": "sha256-kZiyr+WQ1VEkN4IbcCuC0v88IQ2snRN03e2VMWvWMVo=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Components.hv03f1qie5.wasm": "Microsoft.AspNetCore.Components.wasm",
       "Microsoft.AspNetCore.Components.Forms.9104tc46su.wasm": "Microsoft.AspNetCore.Components.Forms.wasm",
@@ -50,7 +50,7 @@
       "System.Threading.fc7xv20kgn.wasm": "System.Threading.wasm",
       "System.dqfxtvioy0.wasm": "System.wasm",
       "System.Private.CoreLib.7af7cqq9ab.wasm": "System.Private.CoreLib.wasm",
-      "PlayedGames.t4j94408ax.wasm": "PlayedGames.wasm",
+      "PlayedGames.ue9y96ejdl.wasm": "PlayedGames.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.l1ds2rhypd.js": "dotnet.native.js",
       "dotnet.native.etgrtk5jba.wasm": "dotnet.native.wasm",
@@ -123,7 +123,7 @@
       "System.Text.RegularExpressions.5nxldfz2oi.wasm": "sha256-kRZ4vGiPOINTIW3lAiPUle9jIbvyz7NQ64UHBTLL1LE=",
       "System.Threading.fc7xv20kgn.wasm": "sha256-kZV/RzEVrmrCpYrO/hzO+TBN2qUD+UP1MmZqksYAMzg=",
       "System.dqfxtvioy0.wasm": "sha256-5QZAjy4n7513fYxCXSXTsAkUmRsLiZ8m621Ot4k7FB0=",
-      "PlayedGames.t4j94408ax.wasm": "sha256-Hd3Xd3ijEJkQBSN1bIguSTQ1HNKt+tJkbDFs+lG9764="
+      "PlayedGames.ue9y96ejdl.wasm": "sha256-2nqO6GJsWlznAYHzoZEROA6tzGC2WQT8X0tzU0leFrA="
     }
   },
   "cacheBootResources": true,
