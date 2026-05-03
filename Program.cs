@@ -13,5 +13,6 @@ builder.Services.AddHttpClient<RawgService>();
 builder.Services.AddScoped<AuthStateService>();
 builder.Services.AddScoped<FirebaseService>();
 builder.Services.AddScoped<GameStateService>();
+builder.Services.AddScoped<XpService>();
 
 await builder.Build().RunAsync();

@@ -132,6 +132,31 @@ namespace PlayedGames.Services
             catch { return null; }
         }
 
+        // ── XP ────────────────────────────────────────────────────────────────
+
+        public async Task<(int Xp, List<string> Awarded)> GetXpAsync(string userId)
+        {
+            try
+            {
+                var result = await _js.InvokeAsync<JsonElement>("firestoreGetXp", userId);
+                // Firestore reads are case-insensitive — JS returns { xp, awarded }
+                int xp = 0;
+                if (result.TryGetProperty("xp", out var xpEl) && xpEl.ValueKind == JsonValueKind.Number)
+                    xp = xpEl.GetInt32();
+                var awarded = new List<string>();
+                if (result.TryGetProperty("awarded", out var aEl) && aEl.ValueKind == JsonValueKind.Array)
+                    foreach (var s in aEl.EnumerateArray())
+                        if (s.ValueKind == JsonValueKind.String) awarded.Add(s.GetString()!);
+                return (xp, awarded);
+            }
+            catch { return (0, new List<string>()); }
+        }
+
+        public async Task SaveXpAsync(string userId, int xp, List<string> awarded)
+        {
+            try { await _js.InvokeVoidAsync("firestoreSaveXp", userId, xp, awarded); } catch { }
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static FirebaseUser ParseUser(JsonElement el) => new()

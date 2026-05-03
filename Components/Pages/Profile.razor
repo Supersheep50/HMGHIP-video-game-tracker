@@ -1,6 +1,8 @@
 @page "/profile"
+@implements IDisposable
 @inject AuthStateService AuthState
 @inject FirebaseService Firebase
+@inject XpService Xp
 @inject NavigationManager Nav
 
 <PageTitle>My Profile — HMGHIP</PageTitle>
@@ -42,6 +44,45 @@
         </div>
     }
 
+    @if (AuthState.IsAuthenticated && AuthState.CurrentUser != null)
+    {
+        var lvl  = Xp.CurrentLevel;
+        var next = Xp.NextLevel;
+        var pct  = Math.Round(Xp.Progress * 100);
+
+        <div class="xp-card anim-fade-up">
+            <div class="xp-card-badge">@lvl.Badge</div>
+            <div class="xp-card-level-label">Level @lvl.Number</div>
+            <h2 class="xp-card-level-name">@lvl.Name</h2>
+            <div class="xp-card-level-num">@Xp.Xp XP earned</div>
+
+            <div class="xp-card-track">
+                <div class="xp-card-fill" style="width: @pct%"></div>
+            </div>
+
+            @if (next != null)
+            {
+                <div class="xp-card-numbers">
+                    <span><strong>@Xp.Xp</strong> XP</span>
+                    <span><strong>@(next.XpRequired - Xp.Xp)</strong> to next</span>
+                    <span><strong>@next.XpRequired</strong> XP</span>
+                </div>
+                <div class="xp-card-next">
+                    <span>Next:</span>
+                    <span class="xp-card-next-badge">@next.Badge</span>
+                    <span>Lvl @next.Number — @next.Name</span>
+                </div>
+            }
+            else
+            {
+                <div class="xp-card-numbers">
+                    <span><strong>@Xp.Xp</strong> XP</span>
+                </div>
+                <div class="xp-card-max">🏆 Max level reached</div>
+            }
+        </div>
+    }
+
     <div class="profile-actions anim-fade-up">
         @if (AuthState.IsAuthenticated && !AuthState.IsGuest)
         {
@@ -54,4 +95,14 @@
 
 </div>
 
-@code { }
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Xp.OnChanged += HandleXpChanged;
+        await Xp.EnsureLoadedAsync();
+    }
+
+    private void HandleXpChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Xp.OnChanged -= HandleXpChanged;
+}

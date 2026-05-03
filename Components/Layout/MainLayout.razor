@@ -5,6 +5,8 @@
 @inject FirebaseService Firebase
 @inject RawgService RawgService
 @inject GameStateService GameState
+@inject XpService Xp
+@inject ISnackbar Snackbar
 @inject NavigationManager Nav
 
 <MudThemeProvider IsDarkMode="true" />
@@ -13,6 +15,8 @@
 <MudSnackbarProvider />
 
 <NavMenu />
+
+<XpBar />
 
 <div class="global-search-bar">
     <div class="global-search-inner">
@@ -443,6 +447,7 @@
         var games = await EnsureSavedAsync();
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
 
+        if (_isPlaying) await Xp.AwardAsync(XpAction.Added, _open.Name);
         _saving = false;
         GameState.NotifyChanged();
     }
@@ -461,6 +466,7 @@
         var games = await EnsureSavedAsync();
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
 
+        if (_isWantToPlay) await Xp.AwardAsync(XpAction.Added, _open.Name);
         _saving = false;
         GameState.NotifyChanged();
     }
@@ -479,6 +485,12 @@
         if (!string.IsNullOrWhiteSpace(_reviewText)) game.ReviewText = _reviewText;
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
         await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _open.Name, "finished");
+
+        await Xp.AwardAsync(XpAction.Added, _open.Name);
+        await Xp.AwardAsync(XpAction.Finished, _open.Name);
+        if (_stars > 0) await Xp.AwardAsync(XpAction.Rating, _open.Name);
+        if (!string.IsNullOrWhiteSpace(_reviewText)) await Xp.AwardAsync(XpAction.Review, _open.Name);
+        if (_liked) await Xp.AwardAsync(XpAction.Liked, _open.Name);
 
         _existingReview = game.Review;
         _isFinished = true;
@@ -499,6 +511,10 @@
         game.Review     = _stars * 2.0;
         game.ReviewText = _reviewText;
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
+
+        await Xp.AwardAsync(XpAction.Added, _open.Name);
+        if (_stars > 0) await Xp.AwardAsync(XpAction.Rating, _open.Name);
+        if (!string.IsNullOrWhiteSpace(_reviewText)) await Xp.AwardAsync(XpAction.Review, _open.Name);
 
         _existingReview = game.Review;
         _mode = "actions";
@@ -545,11 +561,19 @@
     public void Dispose()
     {
         GameState.OnOpenGameRequested -= OnOpenGameRequested;
+        Xp.OnLevelUp -= HandleLevelUp;
+    }
+
+    private void HandleLevelUp(XpLevel lvl)
+    {
+        Snackbar.Add($"{lvl.Badge}  Level Up! You reached Lvl {lvl.Number} — {lvl.Name}",
+            Severity.Success, config => { config.VisibleStateDuration = 4000; });
     }
 
     protected override async Task OnInitializedAsync()
     {
         GameState.OnOpenGameRequested += OnOpenGameRequested;
+        Xp.OnLevelUp += HandleLevelUp;
 
         if (!AuthState.IsAuthenticated)
         {

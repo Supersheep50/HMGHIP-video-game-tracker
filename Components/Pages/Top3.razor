@@ -2,6 +2,7 @@
 @inject PlayedGames.Services.RawgService RawgService
 @inject FirebaseService Firebase
 @inject AuthStateService AuthState
+@inject XpService Xp
 
 <PageTitle>Top 3 — HMGHIP</PageTitle>
 
@@ -158,6 +159,7 @@
         _slots[_pickerTarget] = game;
         _pickerOpen = false;
         await SaveTop3();
+        if (game.Name != null) await Xp.AwardAsync(XpAction.Top3, game.Name);
     }
 
     private async Task RemoveSlot(int idx)

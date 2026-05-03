@@ -1,0 +1,89 @@
+@implements IDisposable
+@inject XpService Xp
+@inject AuthStateService AuthState
+
+@if (AuthState.IsAuthenticated && AuthState.CurrentUser != null)
+{
+    var lvl = Xp.CurrentLevel;
+
+    <div class="xp-toast @(_visible ? "xp-toast-show" : "")" aria-live="polite">
+        <div class="xp-toast-row">
+            <div class="xp-toast-badge">@lvl.Badge</div>
+            <div class="xp-toast-info">
+                <div class="xp-toast-line">
+                    <span class="xp-toast-level">Lvl @lvl.Number</span>
+                    <span class="xp-toast-name">@lvl.Name</span>
+                    @if (_accumAmount > 0)
+                    {
+                        <span class="xp-toast-amount">+@_accumAmount XP</span>
+                    }
+                </div>
+                <div class="xp-toast-track">
+                    <div class="xp-toast-fill" style="width: @_fillPct.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _visible;
+    private int  _accumAmount;
+    private double _fillPct;
+    private System.Threading.CancellationTokenSource? _hideCts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Xp.OnXpAwarded     += HandleAwarded;
+        AuthState.OnChange += HandleAuthChange;
+        // Pre-load so the first award computes a correct prev value
+        await Xp.EnsureLoadedAsync();
+        _fillPct = Xp.Progress * 100;
+    }
+
+    private void HandleAuthChange() => InvokeAsync(StateHasChanged);
+
+    private async void HandleAwarded(int amount, XpAction action)
+    {
+        _hideCts?.Cancel();
+        _hideCts = new System.Threading.CancellationTokenSource();
+        var token = _hideCts.Token;
+
+        if (!_visible)
+        {
+            // First award in this batch — start the bar at its previous fill
+            var prevXp = Math.Max(0, Xp.Xp - amount);
+            _fillPct = XpLevels.Progress(prevXp) * 100;
+            _accumAmount = amount;
+            _visible = true;
+            await InvokeAsync(StateHasChanged);
+
+            // Let the browser commit the initial fill, then animate to current
+            await Task.Delay(40);
+            if (token.IsCancellationRequested) return;
+        }
+        else
+        {
+            _accumAmount += amount;
+        }
+
+        _fillPct = Xp.Progress * 100;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            await Task.Delay(2200, token);
+            _visible = false;
+            _accumAmount = 0;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    public void Dispose()
+    {
+        Xp.OnXpAwarded     -= HandleAwarded;
+        AuthState.OnChange -= HandleAuthChange;
+        _hideCts?.Cancel();
+    }
+}
