@@ -51,10 +51,17 @@
         var pct  = Math.Round(Xp.Progress * 100);
 
         <div class="xp-card anim-fade-up">
-            <div class="xp-card-badge">@lvl.Badge</div>
+            <div class="xp-card-badge-wrap">
+                <div class="xp-card-badge-ring" style="--xp-ring: @pct%"></div>
+                <div class="xp-card-badge">
+                    <span class="xp-card-badge-icon">@lvl.Badge</span>
+                </div>
+                <div class="xp-card-badge-num">@lvl.Number</div>
+            </div>
+
             <div class="xp-card-level-label">Level @lvl.Number</div>
             <h2 class="xp-card-level-name">@lvl.Name</h2>
-            <div class="xp-card-level-num">@Xp.Xp XP earned</div>
+            <div class="xp-card-level-num">@Xp.Xp XP total</div>
 
             <div class="xp-card-track">
                 <div class="xp-card-fill" style="width: @pct%"></div>
@@ -63,14 +70,14 @@
             @if (next != null)
             {
                 <div class="xp-card-numbers">
-                    <span><strong>@Xp.Xp</strong> XP</span>
-                    <span><strong>@(next.XpRequired - Xp.Xp)</strong> to next</span>
-                    <span><strong>@next.XpRequired</strong> XP</span>
+                    <span><strong>@Xp.Xp</strong></span>
+                    <span class="xp-card-numbers-mid">@(next.XpRequired - Xp.Xp) XP to next</span>
+                    <span><strong>@next.XpRequired</strong></span>
                 </div>
                 <div class="xp-card-next">
                     <span>Next:</span>
                     <span class="xp-card-next-badge">@next.Badge</span>
-                    <span>Lvl @next.Number — @next.Name</span>
+                    <span><strong>Lvl @next.Number</strong> — @next.Name</span>
                 </div>
             }
             else
@@ -80,6 +87,18 @@
                 </div>
                 <div class="xp-card-max">🏆 Max level reached</div>
             }
+
+            <div class="xp-journey">
+                @foreach (var step in XpLevels.All)
+                {
+                    var state = step.Number < lvl.Number ? "done"
+                              : step.Number == lvl.Number ? "current" : "locked";
+                    <div class="xp-journey-step xp-journey-@state" title="Lvl @step.Number — @step.Name">
+                        <span class="xp-journey-badge">@step.Badge</span>
+                        <span class="xp-journey-num">@step.Number</span>
+                    </div>
+                }
+            </div>
         </div>
     }
 
