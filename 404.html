@@ -309,6 +309,18 @@
             const snap = await getDoc(doc(db, 'users', userId));
             return snap.exists() ? snap.data() : null;
         };
-    </script>
+
+        window.firestoreGetXp = async (userId) => {
+            const snap = await getDoc(doc(db, 'users', userId));
+            if (!snap.exists()) return { xp: 0, awarded: [] };
+            const d = snap.data();
+            return { xp: d.xp ?? 0, awarded: d.xpAwarded ?? [] };
+        };
+
+        window.firestoreSaveXp = async (userId, xp, awarded) => {
+            await setDoc(doc(db, 'users', userId),
+                { xp, xpAwarded: awarded }, { merge: true });
+        };
+</script>
 </body>
 </html>
