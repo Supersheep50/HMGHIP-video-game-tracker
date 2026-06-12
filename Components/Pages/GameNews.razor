@@ -1,36 +1,179 @@
 @page "/game-news"
+@inject RawgService RawgService
+@inject GameStateService GameState
 
 <PageTitle>Game News — HMGHIP</PageTitle>
 
-<div class="stub-page">
-    <div class="stub-hero">
-        <div class="stub-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>
-        </div>
-        <h1 class="stub-title">Game News</h1>
-        <p class="stub-lead">The latest from across the gaming world — releases, announcements, and everything in between.</p>
-    </div>
-
-    <div class="stub-body">
-        <div class="stub-card">
-            <h2 class="stub-section-title">Latest Headlines</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-        </div>
-
-        <div class="stub-card">
-            <h2 class="stub-section-title">Upcoming Releases</h2>
-            <p>Sed perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
-            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
-        </div>
-
-        <div class="stub-card">
-            <h2 class="stub-section-title">Industry Updates</h2>
-            <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
-        </div>
-
-        <div class="stub-card stub-card-center">
-            <span class="stub-coming-soon">Full News Feed Coming Soon</span>
+<div class="hero-header library-hero">
+    <div class="hero-inner">
+        <div class="hero-title-section anim-fade-up">
+            <div class="year-badge">What's New</div>
+            <p class="hero-title">Game News</p>
+            <p class="hero-subtitle">Fresh releases and what's coming next</p>
         </div>
     </div>
 </div>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
+
+    @* ── Just Released ───────────────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Just Released</h2>
+            <span class="section-subtitle">The last 60 days</span>
+        </div>
+        @if (_loadingRecent)
+        {
+            <div class="section-empty">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Small" />
+                <span>Loading new releases…</span>
+            </div>
+        }
+        else if (!_recent.Any())
+        {
+            <div class="section-empty">
+                <MudIcon Icon="@Icons.Material.Filled.NewReleases" Style="font-size: 2.5rem; opacity: 0.3;" />
+                <span>Couldn't load releases right now</span>
+            </div>
+        }
+        else
+        {
+            <div class="swipe-row">
+                @foreach (var g in _recent)
+                {
+                    <div class="activity-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(g.Name, g.ArtUrl, g.Genre)" style="background: @GameVisuals.Gradient(g.Genre)">
+                        @if (!string.IsNullOrEmpty(g.ArtUrl))
+                        {
+                            <img src="@g.ArtUrl" alt="" class="activity-tile-img" loading="lazy" />
+                        }
+                        <div class="activity-tile-overlay">
+                            <div class="activity-tile-game">@g.Name</div>
+                            <div class="activity-tile-meta">
+                                <span class="release-pill">
+                                    <MudIcon Icon="@Icons.Material.Filled.NewReleases" Size="Size.Small" Style="font-size: 0.9rem;" />
+                                    @FormatDate(g.Released)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    @* ── Coming Soon ─────────────────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Coming Soon</h2>
+            <span class="section-subtitle">Upcoming releases</span>
+        </div>
+        @if (_loadingUpcoming)
+        {
+            <div class="section-empty">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Small" />
+                <span>Loading upcoming releases…</span>
+            </div>
+        }
+        else if (!_upcoming.Any())
+        {
+            <div class="section-empty">
+                <MudIcon Icon="@Icons.Material.Filled.Event" Style="font-size: 2.5rem; opacity: 0.3;" />
+                <span>Couldn't load upcoming games right now</span>
+            </div>
+        }
+        else
+        {
+            <div class="swipe-row">
+                @foreach (var u in _upcoming)
+                {
+                    <div class="activity-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(u.Name, u.ArtUrl, u.Genre)" style="background: @GameVisuals.Gradient(u.Genre)">
+                        @if (!string.IsNullOrEmpty(u.ArtUrl))
+                        {
+                            <img src="@u.ArtUrl" alt="" class="activity-tile-img" loading="lazy" />
+                        }
+                        <div class="activity-tile-overlay">
+                            <div class="activity-tile-game">@u.Name</div>
+                            <div class="activity-tile-meta">
+                                <span class="release-pill">
+                                    <MudIcon Icon="@Icons.Material.Filled.Event" Size="Size.Small" Style="font-size: 0.9rem;" />
+                                    @FormatCountdown(u.Released)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    @* ── Trending ────────────────────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Trending</h2>
+            <span class="section-subtitle">What everyone's playing</span>
+        </div>
+        @if (_trending.Any())
+        {
+            <MudGrid Spacing="3">
+                @foreach (var t in _trending.Take(12))
+                {
+                    <MudItem xs="6" sm="4" md="3" lg="2">
+                        <div class="discover-tile" @onclick="() => GameState.RequestOpenGame(t.Name, t.ArtUrl, t.Genre)">
+                            <div class="discover-tile-art" style="background: @GameVisuals.Gradient(t.Genre)">
+                                @if (!string.IsNullOrEmpty(t.ArtUrl))
+                                {
+                                    <img src="@t.ArtUrl" class="discover-tile-img" alt="@t.Name" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@GameVisuals.Icon(t.Genre)" Style="font-size: 2.5rem; opacity: 0.25; color: white;" />
+                                }
+                            </div>
+                            <div class="discover-tile-body">
+                                <p class="discover-tile-name">@t.Name</p>
+                                <p class="discover-tile-meta">@(t.Genre ?? "Game")</p>
+                            </div>
+                        </div>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </section>
+
+</MudContainer>
+
+@code {
+    private List<RawgSearchResult> _recent = new();
+    private List<RawgUpcomingGame> _upcoming = new();
+    private List<RawgSearchResult> _trending = new();
+    private bool _loadingRecent = true;
+    private bool _loadingUpcoming = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var recentTask   = RawgService.GetRecentReleasesAsync(15);
+        var upcomingTask = RawgService.GetUpcomingGamesAsync(15);
+        var trendingTask = RawgService.GetPopularGamesAsync(12);
+
+        _recent = await recentTask;
+        _loadingRecent = false;
+        StateHasChanged();
+
+        _upcoming = await upcomingTask;
+        _loadingUpcoming = false;
+        _trending = await trendingTask;
+    }
+
+    private static string FormatDate(string? iso) =>
+        DateTime.TryParse(iso, out var dt) ? dt.ToString("MMM d") : "New";
+
+    private static string FormatCountdown(string? iso)
+    {
+        if (string.IsNullOrEmpty(iso) || !DateTime.TryParse(iso, out var dt)) return "TBA";
+        var days = (dt.Date - DateTime.UtcNow.Date).TotalDays;
+        if (days <= 0)  return "Out now";
+        if (days <= 7)  return $"In {(int)days}d";
+        if (dt.Year == DateTime.UtcNow.Year) return dt.ToString("MMM d");
+        return dt.ToString("MMM yyyy");
+    }
+}

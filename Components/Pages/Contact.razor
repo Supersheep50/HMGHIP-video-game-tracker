@@ -14,23 +14,32 @@
     <div class="stub-body">
         <div class="stub-card">
             <h2 class="stub-section-title">Get In Touch</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit.</p>
+            <p>Found a bug, want a feature, or disagree violently with a score? Drop a message — every email gets read, even the ones defending Cyberpunk's launch.</p>
 
             <div class="stub-form">
                 <div class="stub-field">
                     <label class="stub-label">Name</label>
-                    <input class="stub-input" type="text" placeholder="Your name" disabled />
-                </div>
-                <div class="stub-field">
-                    <label class="stub-label">Email</label>
-                    <input class="stub-input" type="email" placeholder="your@email.com" disabled />
+                    <input class="stub-input" type="text" placeholder="Your name" @bind="_name" @bind:event="oninput" />
                 </div>
                 <div class="stub-field">
                     <label class="stub-label">Message</label>
-                    <textarea class="stub-input stub-textarea" placeholder="What's on your mind?" disabled></textarea>
+                    <textarea class="stub-input stub-textarea" placeholder="What's on your mind?" @bind="_message" @bind:event="oninput"></textarea>
                 </div>
-                <div class="stub-coming-soon">Contact form coming soon</div>
+                <a class="setup-next-btn" style="text-decoration:none; text-align:center;"
+                   href="@MailtoLink">
+                    Send via Email
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+@code {
+    private string _name = "";
+    private string _message = "";
+
+    private string MailtoLink =>
+        "mailto:jonathan.morrisseyto@gmail.com"
+        + "?subject=" + Uri.EscapeDataString($"HMGHIP feedback from {(_name.Length > 0 ? _name : "a player")}")
+        + "&body=" + Uri.EscapeDataString(_message);
+}
