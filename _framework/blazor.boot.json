@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "PlayedGames",
   "resources": {
-    "hash": "sha256-UwhtdIv2XQ/lmr2+eZpGB20qFMzWaS53TfRdAOyzgnw=",
+    "hash": "sha256-17BvyE/V7eeBhAiJS9Vdi2dh5ZBZg8PIujETjRv5bR4=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Components.p6orbqimvh.wasm": "Microsoft.AspNetCore.Components.wasm",
       "Microsoft.AspNetCore.Components.Forms.5d02jo09a0.wasm": "Microsoft.AspNetCore.Components.Forms.wasm",
@@ -49,8 +49,8 @@
       "System.Text.RegularExpressions.ry8kyidl1y.wasm": "System.Text.RegularExpressions.wasm",
       "System.Threading.ck7ypa45et.wasm": "System.Threading.wasm",
       "System.t250xnkyfs.wasm": "System.wasm",
-      "System.Private.CoreLib.bflvn50kfw.wasm": "System.Private.CoreLib.wasm",
-      "PlayedGames.jcu1xvp1ed.wasm": "PlayedGames.wasm",
+      "System.Private.CoreLib.7hokzooxne.wasm": "System.Private.CoreLib.wasm",
+      "PlayedGames.lefket1p03.wasm": "PlayedGames.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.xsn1d6x2kd.js": "dotnet.native.js",
       "dotnet.native.vz0adxojrz.wasm": "dotnet.native.wasm",
@@ -75,7 +75,7 @@
     },
     "coreAssembly": {
       "System.Runtime.InteropServices.JavaScript.pkvqfb5bgf.wasm": "sha256-p1LD0fpgFsTckIcsUH+xkP6qPuHbu2ht7Qc9DhOztmY=",
-      "System.Private.CoreLib.bflvn50kfw.wasm": "sha256-ydYKgCl4bASUMoQGpvNixRVdVhCW51hHNaVajHvXktA="
+      "System.Private.CoreLib.7hokzooxne.wasm": "sha256-FSSiaRUX6WbvCMWF6mTof/ssUvql+cmvB77tzZuFR98="
     },
     "assembly": {
       "Microsoft.AspNetCore.Components.p6orbqimvh.wasm": "sha256-zxlCpWCxKLT9Sn711EVr12p/5BYTyUQ2c+WZWwYj7no=",
@@ -123,7 +123,7 @@
       "System.Text.RegularExpressions.ry8kyidl1y.wasm": "sha256-nZtig6AEZNGsZ2lgbPCHIkgxSs9V2CP4FW2OMWPvQRg=",
       "System.Threading.ck7ypa45et.wasm": "sha256-NAT337jZ8vKKqEaIIZX7h6Ebx8VSc6hIlBPK0fPmL28=",
       "System.t250xnkyfs.wasm": "sha256-tVaTeiubnxofQV5rO7ga2UOORIQEtLkQr36ewcMO+tw=",
-      "PlayedGames.jcu1xvp1ed.wasm": "sha256-HUMuefV2Rc6nYLe9xf47106E774IJiMYhZwk3ctAxko="
+      "PlayedGames.lefket1p03.wasm": "sha256-A8PWWForCKK8zgWZETa/8n7Y2ENGYA3MhlnMDgQWB/U="
     }
   },
   "cacheBootResources": true,
