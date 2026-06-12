@@ -3698,3 +3698,74 @@ html, body {
     filter: drop-shadow(0 2px 6px rgba(167, 139, 250, 0.7));
 }
 .xp-journey-current .xp-journey-num { color: var(--accent-light); }
+
+/* ═══════════════ Library status filter chips ═══════════════ */
+.status-filter-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0.25rem 0 0.75rem;
+}
+.status-filter-row::-webkit-scrollbar { display: none; }
+
+.status-filter-chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: #9ca3af;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.status-filter-chip:hover {
+    border-color: rgba(167, 139, 250, 0.5);
+    color: #e5e7eb;
+}
+.status-filter-chip.chip-active {
+    background: rgba(124, 58, 237, 0.25);
+    border-color: #7c3aed;
+    color: #e9d5ff;
+}
+.chip-count {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: 0.05rem 0.45rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.status-filter-chip.chip-active .chip-count {
+    background: rgba(124, 58, 237, 0.5);
+    color: #fff;
+}
+
+/* ═══════════════ Popup: remove from library ═══════════════ */
+.popup-remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.6rem;
+    border-radius: 10px;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: rgba(239, 68, 68, 0.08);
+    color: #f87171;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.popup-remove-btn:hover { background: rgba(239, 68, 68, 0.18); }
+.popup-remove-btn:disabled { opacity: 0.5; cursor: default; }
+.popup-remove-btn svg { width: 16px; height: 16px; }
