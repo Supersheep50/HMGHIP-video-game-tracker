@@ -14,7 +14,7 @@
             {
                 @foreach (var game in _heroBackgroundGames)
                 {
-                    <div class="carousel-tile" style="background: @GetGenreGradient(game.Genre)">
+                    <div class="carousel-tile" style="background: @GameVisuals.Gradient(game.Genre)">
                         @if (!string.IsNullOrEmpty(game.ArtUrl))
                         {
                             <img src="@game.ArtUrl" alt="" class="carousel-img" />
@@ -73,14 +73,14 @@
                 @foreach (var game in _currentlyPlaying)
                 {
                     <div class="playing-card" @onclick="() => GameState.RequestOpenGame(game.Name!, game.GameArtUrl, game.Genre)">
-                        <div class="playing-card-art" style="background: @GetGenreGradient(game.Genre)">
+                        <div class="playing-card-art" style="background: @GameVisuals.Gradient(game.Genre)">
                             @if (!string.IsNullOrEmpty(game.GameArtUrl))
                             {
                                 <img src="@game.GameArtUrl" class="playing-card-img" alt="@game.Name" />
                             }
                             else
                             {
-                                <MudIcon Icon="@GetGenreIcon(game.Genre)" Style="font-size: 3rem; opacity: 0.25; color: white;" />
+                                <MudIcon Icon="@GameVisuals.Icon(game.Genre)" Style="font-size: 3rem; opacity: 0.25; color: white;" />
                             }
                             <div class="playing-badge">
                                 <span class="playing-pulse"></span> Playing
@@ -114,7 +114,7 @@
         <div class="swipe-row">
             @foreach (var item in _yearActivityFeed)
             {
-                <div class="activity-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(item.GameName, item.ArtUrl, item.Genre)" style="background: @GetGenreGradient(item.Genre)">
+                <div class="activity-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(item.GameName, item.ArtUrl, item.Genre)" style="background: @GameVisuals.Gradient(item.Genre)">
                         @if (!string.IsNullOrEmpty(item.ArtUrl))
                         {
                             <img src="@item.ArtUrl" alt="" class="activity-tile-img" />
@@ -149,7 +149,7 @@
             <div class="auto-carousel-track auto-carousel-medium">
                 @foreach (var rec in _recommendations.Concat(_recommendations))
                 {
-                    <div class="rec-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(rec.Name, rec.ArtUrl, rec.Genre)" style="background: @GetGenreGradient(rec.Genre)">
+                    <div class="rec-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(rec.Name, rec.ArtUrl, rec.Genre)" style="background: @GameVisuals.Gradient(rec.Genre)">
                         @if (!string.IsNullOrEmpty(rec.ArtUrl))
                         {
                             <img src="@rec.ArtUrl" alt="@rec.Name" class="rec-tile-img" />
@@ -157,7 +157,7 @@
                         else
                         {
                             <div class="rec-tile-icon">
-                                <MudIcon Icon="@GetGenreIcon(rec.Genre)" Style="font-size: 3rem; opacity: 0.3; color: white;" />
+                                <MudIcon Icon="@GameVisuals.Icon(rec.Genre)" Style="font-size: 3rem; opacity: 0.3; color: white;" />
                             </div>
                         }
                         <div class="rec-tile-overlay">
@@ -191,7 +191,7 @@
             <div class="swipe-row">
                 @foreach (var u in _upcoming)
                 {
-                    <div class="activity-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(u.Name, u.ArtUrl, u.Genre)" style="background: @GetGenreGradient(u.Genre)">
+                    <div class="activity-tile clickable-tile" @onclick="() => GameState.RequestOpenGame(u.Name, u.ArtUrl, u.Genre)" style="background: @GameVisuals.Gradient(u.Genre)">
                         @if (!string.IsNullOrEmpty(u.ArtUrl))
                         {
                             <img src="@u.ArtUrl" alt="" class="activity-tile-img" />
@@ -234,13 +234,13 @@
                             <div class="review-author">@(review.Friend?.Name ?? "You")</div>
                             <div class="review-when">@RelativeTime(review.When)</div>
                         </div>
-                        <div class="review-score-pill @GetRatingClass(review.Score)">
+                        <div class="review-score-pill @GameVisuals.RatingClass(review.Score)">
                             @review.Score.ToString("F1")<span class="review-score-sub">/10</span>
                         </div>
                     </div>
                     <div class="review-body">
                         <div class="review-game">@review.GameName</div>
-                        <div class="review-stars">@RenderStars(review.Score)</div>
+                        <div class="review-stars">@GameVisuals.Stars(review.Score)</div>
                         <p class="review-text">@review.ReviewText</p>
                     </div>
                 </div>
@@ -271,7 +271,7 @@
                     <div class="review-modal-author">@(_openReview.Friend?.Name ?? "You")</div>
                     <div class="review-modal-when">@RelativeTime(_openReview.When)</div>
                 </div>
-                <div class="review-score-pill review-score-pill-lg @GetRatingClass(_openReview.Score)">
+                <div class="review-score-pill review-score-pill-lg @GameVisuals.RatingClass(_openReview.Score)">
                     @_openReview.Score.ToString("F1")<span class="review-score-sub">/10</span>
                 </div>
             </div>
@@ -283,8 +283,8 @@
                 }
                 else
                 {
-                    <div class="review-modal-art" style="background: @GetGenreGradient(_openReview.Genre); display:flex; align-items:center; justify-content:center;">
-                        <MudIcon Icon="@GetGenreIcon(_openReview.Genre)" Style="font-size: 2rem; opacity: 0.4; color: white;" />
+                    <div class="review-modal-art" style="background: @GameVisuals.Gradient(_openReview.Genre); display:flex; align-items:center; justify-content:center;">
+                        <MudIcon Icon="@GameVisuals.Icon(_openReview.Genre)" Style="font-size: 2rem; opacity: 0.4; color: white;" />
                     </div>
                 }
                 <div>
@@ -293,7 +293,7 @@
                     {
                         <div class="review-modal-genre">@_openReview.Genre</div>
                     }
-                    <div class="review-stars">@RenderStars(_openReview.Score)</div>
+                    <div class="review-stars">@GameVisuals.Stars(_openReview.Score)</div>
                 </div>
             </div>
 
@@ -338,6 +338,7 @@
     private List<Games> _yearGames = new();
     private List<Games> _currentlyPlaying = new();
     private readonly HashSet<string> _playing = new();
+    private readonly HashSet<string> _finished = new();
 
     // Hero background — lightweight tile data
     private List<TileData> _heroBackgroundGames = new();
@@ -415,14 +416,21 @@
         if (AuthState.CurrentUser == null) return;
 
         _allUserGames = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
-        _yearGames    = _allUserGames.Where(g => g.Year == DateTime.Now.Year).ToList();
 
         _playing.Clear();
+        _finished.Clear();
         var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
         foreach (var (name, status) in statuses)
         {
-            if (status == "playing") _playing.Add(name);
+            if (status == "playing")       _playing.Add(name);
+            else if (status == "finished") _finished.Add(name);
         }
+
+        // "Played this year" = finished status (legacy entries fall back to logged hours)
+        _yearGames = _allUserGames
+            .Where(g => g.Year == DateTime.Now.Year &&
+                        (g.Name != null && _finished.Contains(g.Name) || g.HoursPlayed > 0))
+            .ToList();
 
         _currentlyPlaying = _allUserGames
             .Where(g => g.Name != null && _playing.Contains(g.Name))
@@ -439,7 +447,6 @@
     private void RebuildFeeds()
     {
         var userYearFinishes = _yearGames
-            .Where(g => g.HoursPlayed > 0)
             .Select(g => new ActivityItem
             {
                 GameName = g.Name ?? "",
@@ -561,59 +568,4 @@
         return "just now";
     }
 
-    private static MarkupString RenderStars(double score)
-    {
-        double stars = score / 2.0;
-        int full  = (int)Math.Floor(stars);
-        bool half = (stars - full) >= 0.5;
-        int empty = 5 - full - (half ? 1 : 0);
-        const string F = "<svg class='star star-full'  viewBox='0 0 24 24'><path d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/></svg>";
-        const string H = "<svg class='star star-half'  viewBox='0 0 24 24'><path d='M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4V6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z'/></svg>";
-        const string E = "<svg class='star star-empty' viewBox='0 0 24 24'><path d='M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z'/></svg>";
-        var sb = new System.Text.StringBuilder();
-        for (int i = 0; i < full;  i++) sb.Append(F);
-        if (half) sb.Append(H);
-        for (int i = 0; i < empty; i++) sb.Append(E);
-        return new MarkupString(sb.ToString());
-    }
-
-    private string GetRatingClass(double r) => r switch
-    {
-        >= 9 => "rating-excellent",
-        >= 7 => "rating-good",
-        >= 5 => "rating-average",
-        _    => "rating-poor"
-    };
-
-    private string GetGenreGradient(string? genre) => genre switch
-    {
-        "Action RPG"       => "linear-gradient(145deg, #1e0a3c 0%, #6b21a8 100%)",
-        "RPG"              => "linear-gradient(145deg, #0d1b4b 0%, #1d4ed8 100%)",
-        "Action-Adventure" => "linear-gradient(145deg, #1c0505 0%, #991b1b 100%)",
-        "JRPG"             => "linear-gradient(145deg, #3b0000 0%, #dc2626 100%)",
-        "Roguelike"        => "linear-gradient(145deg, #0a0a1a 0%, #4338ca 100%)",
-        "Metroidvania"     => "linear-gradient(145deg, #000d10 0%, #0e7490 100%)",
-        "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
-        "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
-        "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
-        "Platformer"       => "linear-gradient(145deg, #0a1a2a 0%, #0369a1 100%)",
-        "Racing"           => "linear-gradient(145deg, #1a0a00 0%, #d97706 100%)",
-        _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
-    };
-
-    private string GetGenreIcon(string? genre) => genre switch
-    {
-        "Action RPG"       => Icons.Material.Filled.AutoFixHigh,
-        "RPG"              => Icons.Material.Filled.AutoAwesome,
-        "Action-Adventure" => Icons.Material.Filled.Explore,
-        "JRPG"             => Icons.Material.Filled.Stars,
-        "Roguelike"        => Icons.Material.Filled.Loop,
-        "Metroidvania"     => Icons.Material.Filled.Terrain,
-        "Simulation"       => Icons.Material.Filled.Yard,
-        "MMORPG"           => Icons.Material.Filled.Groups,
-        "Action"           => Icons.Material.Filled.FlashOn,
-        "Platformer"       => Icons.Material.Filled.DirectionsRun,
-        "Racing"           => Icons.Material.Filled.Speed,
-        _                  => Icons.Material.Filled.SportsEsports,
-    };
 }

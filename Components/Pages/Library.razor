@@ -65,7 +65,7 @@
                     var saved = _savedGames.FirstOrDefault(g => string.Equals(g.Name, result.Name, StringComparison.OrdinalIgnoreCase));
                     <MudItem xs="12" sm="6" md="4" lg="3">
                         <MudCard Class="game-card" Elevation="0">
-                            <div class="card-art" style="background: @GetGenreGradient(result.Genre)">
+                            <div class="card-art" style="background: @GameVisuals.Gradient(result.Genre)">
                                 @if (!string.IsNullOrEmpty(result.ArtUrl))
                                 {
                                     <img src="@result.ArtUrl" class="card-art-img" alt="@result.Name" />
@@ -73,7 +73,7 @@
                                 else
                                 {
                                     <div class="card-art-icon">
-                                        <MudIcon Icon="@GetGenreIcon(result.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                                        <MudIcon Icon="@GameVisuals.Icon(result.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
                                     </div>
                                 }
                             </div>
@@ -82,12 +82,12 @@
                                     <p class="game-name">@result.Name</p>
                                     @if (saved?.Review > 0)
                                     {
-                                        <span class="card-score @GetRatingClass(saved.Review)">@saved.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
+                                        <span class="card-score @GameVisuals.RatingClass(saved.Review)">@saved.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
                                     }
                                 </div>
                                 @if (saved?.Review > 0)
                                 {
-                                    <div class="card-stars-wrap">@RenderStars(saved.Review)</div>
+                                    <div class="card-stars-wrap">@GameVisuals.Stars(saved.Review)</div>
                                 }
                                 <div class="card-tags">
                                     <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="tag-chip genre-tag">@(result.Genre ?? "Game")</MudChip>
@@ -147,12 +147,35 @@
         }
         else
         {
-            <MudText Typo="Typo.body2" Class="results-count">
-                @_savedGames.Count games
-            </MudText>
+            <div class="status-filter-row">
+                <button class="status-filter-chip @(_filter == "all" ? "chip-active" : "")" @onclick='() => _filter = "all"'>
+                    All <span class="chip-count">@_savedGames.Count</span>
+                </button>
+                <button class="status-filter-chip chip-playing @(_filter == "playing" ? "chip-active" : "")" @onclick='() => _filter = "playing"'>
+                    Playing <span class="chip-count">@_savedGames.Count(g => g.Name != null && _playing.Contains(g.Name))</span>
+                </button>
+                <button class="status-filter-chip chip-want @(_filter == "want" ? "chip-active" : "")" @onclick='() => _filter = "want"'>
+                    Want to Play <span class="chip-count">@_savedGames.Count(g => g.Name != null && _wantToPlay.Contains(g.Name))</span>
+                </button>
+                <button class="status-filter-chip chip-finished @(_filter == "finished" ? "chip-active" : "")" @onclick='() => _filter = "finished"'>
+                    Finished <span class="chip-count">@_savedGames.Count(g => g.Name != null && _finished.Contains(g.Name))</span>
+                </button>
+                <button class="status-filter-chip chip-reviewed @(_filter == "reviewed" ? "chip-active" : "")" @onclick='() => _filter = "reviewed"'>
+                    Reviewed <span class="chip-count">@_savedGames.Count(g => g.Review > 0)</span>
+                </button>
+            </div>
+
+            @if (!FilteredGames.Any())
+            {
+                <div class="empty-state">
+                    <MudIcon Icon="@Icons.Material.Filled.FilterAltOff" Style="font-size: 4rem; opacity: 0.3;" />
+                    <MudText Typo="Typo.h6" Class="mt-3">Nothing here yet</MudText>
+                    <MudText Typo="Typo.body2">Games you mark will show up under this filter</MudText>
+                </div>
+            }
             <MudGrid Spacing="3">
                 @{ int cardIdx = 0; }
-                @foreach (var game in _savedGames.OrderByDescending(g => g.Review).ThenBy(g => g.Name))
+                @foreach (var game in FilteredGames.OrderByDescending(g => g.Review).ThenBy(g => g.Name))
                 {
                     var delay = $"animation-delay:{cardIdx * 0.07}s";
                     cardIdx++;
@@ -160,7 +183,7 @@
                         <div class="card-reveal" style="@delay">
                         <MudCard Class="game-card" Elevation="0">
                             <div class="card-art @(game.GameArtUrl == null ? "card-art-loading" : "")"
-                                 style="background: @GetGenreGradient(game.Genre)">
+                                 style="background: @GameVisuals.Gradient(game.Genre)">
                                 @if (!string.IsNullOrEmpty(game.GameArtUrl))
                                 {
                                     <img src="@game.GameArtUrl" class="card-art-img" alt="@game.Name" />
@@ -168,7 +191,7 @@
                                 else
                                 {
                                     <div class="card-art-icon">
-                                        <MudIcon Icon="@GetGenreIcon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
+                                        <MudIcon Icon="@GameVisuals.Icon(game.Genre)" Style="font-size: 3.5rem; opacity: 0.25; color: white;" />
                                     </div>
                                 }
                             </div>
@@ -177,12 +200,12 @@
                                     <p class="game-name">@game.Name</p>
                                     @if (game.Review > 0)
                                     {
-                                        <span class="card-score @GetRatingClass(game.Review)">@game.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
+                                        <span class="card-score @GameVisuals.RatingClass(game.Review)">@game.Review.ToString("F1")<span class="card-score-sub">/10</span></span>
                                     }
                                 </div>
                                 @if (game.Review > 0)
                                 {
-                                    <div class="card-stars-wrap">@RenderStars(game.Review)</div>
+                                    <div class="card-stars-wrap">@GameVisuals.Stars(game.Review)</div>
                                 }
                                 @if (game.HoursPlayed > 0)
                                 {
@@ -301,61 +324,16 @@
         _isSearching = false;
     }
 
-    // ── Display helpers ───────────────────────────────────────────────────
+    // ── Status filter ─────────────────────────────────────────────────────
 
-    private static MarkupString RenderStars(double score)
-    {
-        double stars = score / 2.0;
-        int full  = (int)Math.Floor(stars);
-        bool half = (stars - full) >= 0.5;
-        int empty = 5 - full - (half ? 1 : 0);
-        const string F = "<svg class='star star-full'  viewBox='0 0 24 24'><path d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/></svg>";
-        const string H = "<svg class='star star-half'  viewBox='0 0 24 24'><path d='M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4V6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z'/></svg>";
-        const string E = "<svg class='star star-empty' viewBox='0 0 24 24'><path d='M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z'/></svg>";
-        var sb = new System.Text.StringBuilder();
-        for (int i = 0; i < full;  i++) sb.Append(F);
-        if (half) sb.Append(H);
-        for (int i = 0; i < empty; i++) sb.Append(E);
-        return new MarkupString(sb.ToString());
-    }
+    private string _filter = "all";
 
-    private string GetRatingClass(double r) => r switch
+    private IEnumerable<Games> FilteredGames => _filter switch
     {
-        >= 9 => "rating-excellent",
-        >= 7 => "rating-good",
-        >= 5 => "rating-average",
-        _    => "rating-poor"
-    };
-
-    private string GetGenreGradient(string? genre) => genre switch
-    {
-        "Action RPG"       => "linear-gradient(145deg, #1e0a3c 0%, #6b21a8 100%)",
-        "RPG"              => "linear-gradient(145deg, #0d1b4b 0%, #1d4ed8 100%)",
-        "Action-Adventure" => "linear-gradient(145deg, #1c0505 0%, #991b1b 100%)",
-        "JRPG"             => "linear-gradient(145deg, #3b0000 0%, #dc2626 100%)",
-        "Roguelike"        => "linear-gradient(145deg, #0a0a1a 0%, #4338ca 100%)",
-        "Metroidvania"     => "linear-gradient(145deg, #000d10 0%, #0e7490 100%)",
-        "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
-        "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
-        "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
-        "Platformer"       => "linear-gradient(145deg, #0a1a2a 0%, #0369a1 100%)",
-        "Racing"           => "linear-gradient(145deg, #1a0a00 0%, #d97706 100%)",
-        _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
-    };
-
-    private string GetGenreIcon(string? genre) => genre switch
-    {
-        "Action RPG"       => Icons.Material.Filled.AutoFixHigh,
-        "RPG"              => Icons.Material.Filled.AutoAwesome,
-        "Action-Adventure" => Icons.Material.Filled.Explore,
-        "JRPG"             => Icons.Material.Filled.Stars,
-        "Roguelike"        => Icons.Material.Filled.Loop,
-        "Metroidvania"     => Icons.Material.Filled.Terrain,
-        "Simulation"       => Icons.Material.Filled.Yard,
-        "MMORPG"           => Icons.Material.Filled.Groups,
-        "Action"           => Icons.Material.Filled.FlashOn,
-        "Platformer"       => Icons.Material.Filled.DirectionsRun,
-        "Racing"           => Icons.Material.Filled.Speed,
-        _                  => Icons.Material.Filled.SportsEsports,
+        "playing"  => _savedGames.Where(g => g.Name != null && _playing.Contains(g.Name)),
+        "want"     => _savedGames.Where(g => g.Name != null && _wantToPlay.Contains(g.Name)),
+        "finished" => _savedGames.Where(g => g.Name != null && _finished.Contains(g.Name)),
+        "reviewed" => _savedGames.Where(g => g.Review > 0),
+        _          => _savedGames,
     };
 }

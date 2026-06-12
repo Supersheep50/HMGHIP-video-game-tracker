@@ -4,7 +4,8 @@ using System.Text.Json.Serialization;
 
 namespace PlayedGames.Services
 {
-    public record RawgSearchResult(string Name, string? ArtUrl, string? Genre);
+    public record RawgSearchResult(string Name, string? ArtUrl, string? Genre,
+                                   string? Released = null, double? Rating = null, int? Metacritic = null);
 
     public record RawgUpcomingGame(string Name, string? ArtUrl, string? Genre, string? Released);
 
@@ -30,8 +31,10 @@ namespace PlayedGames.Services
         private readonly ConcurrentDictionary<string, Task<string?>>          _artCache     = new();
         private readonly ConcurrentDictionary<string, Task<RawgGameDetail?>>  _detailCache  = new();
         private readonly ConcurrentDictionary<string, Task<List<RawgSearchResult>>> _searchCache = new();
+        private readonly ConcurrentDictionary<string, Task<List<RawgSearchResult>>> _browseCache = new();
         private Task<List<RawgSearchResult>>?    _popularCache;
         private Task<List<RawgUpcomingGame>>?    _upcomingCache;
+        private Task<List<RawgSearchResult>>?    _recentCache;
 
         public RawgService(HttpClient http, IConfiguration config)
         {
@@ -68,6 +71,40 @@ namespace PlayedGames.Services
         private async Task<List<RawgSearchResult>> LoadPopularAsync(int pageSize)
         {
             var url = $"https://api.rawg.io/api/games?key={_apiKey}&ordering=-added&page_size={pageSize}";
+            return await FetchListAsync(url);
+        }
+
+        // Browse the catalog, optionally filtered to a RAWG genre slug (e.g. "role-playing-games-rpg").
+        public Task<List<RawgSearchResult>> BrowseGamesAsync(string? genreSlug, int page = 1, int pageSize = 24)
+        {
+            if (string.IsNullOrEmpty(_apiKey)) return Task.FromResult(new List<RawgSearchResult>());
+
+            return _browseCache.GetOrAdd($"{genreSlug ?? "all"}|{page}", async _ =>
+            {
+                var genrePart = string.IsNullOrEmpty(genreSlug) ? "" : $"&genres={genreSlug}";
+                var url = $"https://api.rawg.io/api/games?key={_apiKey}&ordering=-added{genrePart}&page={page}&page_size={pageSize}";
+                return await FetchListAsync(url);
+            });
+        }
+
+        // Notable games released in the last ~60 days, most popular first.
+        public Task<List<RawgSearchResult>> GetRecentReleasesAsync(int pageSize = 15)
+        {
+            if (string.IsNullOrEmpty(_apiKey)) return Task.FromResult(new List<RawgSearchResult>());
+
+            return _recentCache ??= LoadRecentAsync(pageSize);
+        }
+
+        private async Task<List<RawgSearchResult>> LoadRecentAsync(int pageSize)
+        {
+            var from = DateTime.UtcNow.AddDays(-60).ToString("yyyy-MM-dd");
+            var to   = DateTime.UtcNow.ToString("yyyy-MM-dd");
+            var url  = $"https://api.rawg.io/api/games?key={_apiKey}&dates={from},{to}&ordering=-added&page_size={pageSize}";
+            return await FetchListAsync(url);
+        }
+
+        private async Task<List<RawgSearchResult>> FetchListAsync(string url)
+        {
             try
             {
                 var response = await _http.GetFromJsonAsync<RawgResponse>(url);
@@ -76,7 +113,10 @@ namespace PlayedGames.Services
                     .Select(r => new RawgSearchResult(
                         r.Name!,
                         r.BackgroundImage,
-                        r.Genres?.FirstOrDefault()?.Name))
+                        r.Genres?.FirstOrDefault()?.Name,
+                        r.Released,
+                        r.Rating,
+                        r.Metacritic))
                     .ToList() ?? new();
             }
             catch { return new(); }
@@ -158,21 +198,10 @@ namespace PlayedGames.Services
             if (string.IsNullOrEmpty(_apiKey) || string.IsNullOrEmpty(query))
                 return Task.FromResult(new List<RawgSearchResult>());
 
-            return _searchCache.GetOrAdd(CacheKey(query), async _ =>
+            return _searchCache.GetOrAdd(CacheKey(query), _ =>
             {
                 var url = $"https://api.rawg.io/api/games?key={_apiKey}&search={Uri.EscapeDataString(query)}&page_size=12";
-                try
-                {
-                    var response = await _http.GetFromJsonAsync<RawgResponse>(url);
-                    return response?.Results?
-                        .Where(r => !string.IsNullOrEmpty(r.Name))
-                        .Select(r => new RawgSearchResult(
-                            r.Name!,
-                            r.BackgroundImage,
-                            r.Genres?.FirstOrDefault()?.Name))
-                        .ToList() ?? new();
-                }
-                catch { return new(); }
+                return FetchListAsync(url);
             });
         }
     }
@@ -199,6 +228,12 @@ namespace PlayedGames.Services
 
         [JsonPropertyName("released")]
         public string? Released { get; set; }
+
+        [JsonPropertyName("rating")]
+        public double? Rating { get; set; }
+
+        [JsonPropertyName("metacritic")]
+        public int? Metacritic { get; set; }
     }
 
     file class RawgGenre

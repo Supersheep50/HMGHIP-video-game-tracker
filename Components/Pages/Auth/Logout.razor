@@ -3,6 +3,7 @@
 @inject NavigationManager Nav
 @inject FirebaseService Firebase
 @inject AuthStateService AuthState
+@inject IJSRuntime JS
 
 <PageTitle>Sign Out — HMGHIP</PageTitle>
 
@@ -36,6 +37,7 @@
     {
         await Firebase.SignOutAsync();
         AuthState.SignOut();
+        try { await JS.InvokeVoidAsync("localStorage.removeItem", "hmghip_guest"); } catch { }
         Nav.NavigateTo("login", replace: true);
     }
 }

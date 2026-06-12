@@ -88,7 +88,7 @@
 
             @if (_mode == "actions")
             {
-                <div class="game-detail-art" style="background: @GenreGradient(_open.Genre)">
+                <div class="game-detail-art" style="background: @GameVisuals.Gradient(_open.Genre)">
                     @if (!string.IsNullOrEmpty(_open.ArtUrl))
                     {
                         <img src="@_open.ArtUrl" alt="@_open.Name" class="game-detail-art-img" />
@@ -192,6 +192,13 @@
                             Review
                         </button>
                     </div>
+                    @if (_isSaved)
+                    {
+                        <button class="popup-remove-btn" @onclick="RemoveFromLibrary" disabled="@_saving">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            Remove from Library
+                        </button>
+                    }
                 }
             }
             else if (_mode == "finished")
@@ -298,6 +305,7 @@
     private bool _isPlaying;
     private bool _isFinished;
     private bool _isWantToPlay;
+    private bool _isSaved;
     private bool _liked;
     private double _existingReview;
     private double _hours;
@@ -365,6 +373,7 @@
         _isPlaying = false;
         _isFinished = false;
         _isWantToPlay = false;
+        _isSaved = false;
         _liked = false;
         _existingReview = 0;
         _hours = 0;
@@ -392,6 +401,7 @@
             string.Equals(g.Name, r.Name, StringComparison.OrdinalIgnoreCase));
         if (existing != null)
         {
+            _isSaved        = true;
             _hours          = existing.HoursPlayed;
             _platform       = existing.System ?? "";
             _liked          = existing.Liked;
@@ -449,6 +459,7 @@
 
         var games = await EnsureSavedAsync();
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
+        _isSaved = true;
 
         if (_isPlaying) await Xp.AwardAsync(XpAction.Added, _open.Name);
         _saving = false;
@@ -468,10 +479,35 @@
 
         var games = await EnsureSavedAsync();
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
+        _isSaved = true;
 
         if (_isWantToPlay) await Xp.AwardAsync(XpAction.Added, _open.Name);
         _saving = false;
         GameState.NotifyChanged();
+    }
+
+    private async Task RemoveFromLibrary()
+    {
+        if (_open == null || AuthState.CurrentUser == null) return;
+        _saving = true;
+
+        var games = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
+        games.RemoveAll(g => string.Equals(g.Name, _open.Name, StringComparison.OrdinalIgnoreCase));
+        await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
+        await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _open.Name, "none");
+
+        _isSaved = false;
+        _isPlaying = false;
+        _isFinished = false;
+        _isWantToPlay = false;
+        _existingReview = 0;
+        _hours = 0;
+        _liked = false;
+        _reviewText = "";
+        _saving = false;
+        GameState.NotifyChanged();
+        Snackbar.Add($"{_open.Name} removed from your library", Severity.Normal);
+        CloseDetail();
     }
 
     private async Task SaveFinished()
@@ -496,6 +532,7 @@
         if (_liked) await Xp.AwardAsync(XpAction.Liked, _open.Name);
 
         _existingReview = game.Review;
+        _isSaved    = true;
         _isFinished = true;
         _isPlaying  = false;
         _isWantToPlay = false;
@@ -520,6 +557,7 @@
         if (!string.IsNullOrWhiteSpace(_reviewText)) await Xp.AwardAsync(XpAction.Review, _open.Name);
 
         _existingReview = game.Review;
+        _isSaved = true;
         _mode = "actions";
         _saving = false;
         GameState.NotifyChanged();
@@ -531,22 +569,6 @@
         if (DateTime.TryParse(iso, out var dt)) return dt.ToString("MMM d, yyyy");
         return iso;
     }
-
-    private static string GenreGradient(string? genre) => genre switch
-    {
-        "Action RPG"       => "linear-gradient(145deg, #1e0a3c 0%, #6b21a8 100%)",
-        "RPG"              => "linear-gradient(145deg, #0d1b4b 0%, #1d4ed8 100%)",
-        "Action-Adventure" => "linear-gradient(145deg, #1c0505 0%, #991b1b 100%)",
-        "JRPG"             => "linear-gradient(145deg, #3b0000 0%, #dc2626 100%)",
-        "Roguelike"        => "linear-gradient(145deg, #0a0a1a 0%, #4338ca 100%)",
-        "Metroidvania"     => "linear-gradient(145deg, #000d10 0%, #0e7490 100%)",
-        "Simulation"       => "linear-gradient(145deg, #0a1a0a 0%, #15803d 100%)",
-        "MMORPG"           => "linear-gradient(145deg, #1a1000 0%, #b45309 100%)",
-        "Action"           => "linear-gradient(145deg, #1a0a00 0%, #c2410c 100%)",
-        "Platformer"       => "linear-gradient(145deg, #0a1a2a 0%, #0369a1 100%)",
-        "Racing"           => "linear-gradient(145deg, #1a0a00 0%, #d97706 100%)",
-        _                  => "linear-gradient(145deg, #1a1a2e 0%, #374151 100%)",
-    };
 
     // ── Auth bootstrap ────────────────────────────────────────────────────
 
@@ -582,7 +604,19 @@
         {
             var user = await Firebase.GetCurrentUserAsync();
             if (user != null)
+            {
                 AuthState.SignInWithUser(user);
+            }
+            else
+            {
+                // Guest sessions survive a page reload via a localStorage flag
+                try
+                {
+                    var guest = await JS.InvokeAsync<string?>("localStorage.getItem", "hmghip_guest");
+                    if (guest == "1") AuthState.SignInAsGuest();
+                }
+                catch { }
+            }
         }
 
         var path = "/" + Nav.ToBaseRelativePath(Nav.Uri).TrimStart('/');

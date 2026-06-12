@@ -3,6 +3,7 @@
 @inject NavigationManager Nav
 @inject AuthStateService AuthState
 @inject FirebaseService Firebase
+@inject IJSRuntime JS
 
 <PageTitle>HMGHIP</PageTitle>
 
@@ -65,9 +66,10 @@
         _loading = false;
     }
 
-    private void ContinueAsGuest()
+    private async Task ContinueAsGuest()
     {
         AuthState.SignInAsGuest();
+        try { await JS.InvokeVoidAsync("localStorage.setItem", "hmghip_guest", "1"); } catch { }
         Nav.NavigateTo("", replace: true);
     }
 }
