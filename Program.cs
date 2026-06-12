@@ -10,6 +10,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
 builder.Services.AddHttpClient<RawgService>();
+builder.Services.AddHttpClient<NewsService>();
 builder.Services.AddScoped<AuthStateService>();
 builder.Services.AddScoped<FirebaseService>();
 builder.Services.AddScoped<GameStateService>();

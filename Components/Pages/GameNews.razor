@@ -1,5 +1,6 @@
 @page "/game-news"
 @inject RawgService RawgService
+@inject NewsService News
 @inject GameStateService GameState
 
 <PageTitle>Game News — HMGHIP</PageTitle>
@@ -15,6 +16,71 @@
 </div>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
+
+    @* ── Headlines ───────────────────────────────────────────────────── *@
+    <section class="home-section">
+        <div class="section-head">
+            <h2 class="section-title">Headlines</h2>
+            <span class="section-subtitle">IGN · GameSpot · Eurogamer</span>
+        </div>
+        @if (_loadingNews)
+        {
+            <div class="section-empty">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Small" />
+                <span>Loading headlines…</span>
+            </div>
+        }
+        else if (!_headlines.Any())
+        {
+            <div class="section-empty">
+                <MudIcon Icon="@Icons.Material.Filled.Newspaper" Style="font-size: 2.5rem; opacity: 0.3;" />
+                <span>Couldn't load headlines right now</span>
+            </div>
+        }
+        else
+        {
+            var featured = _headlines[0];
+            <a class="news-featured" href="@featured.Link" target="_blank" rel="noopener">
+                @if (!string.IsNullOrEmpty(featured.ImageUrl))
+                {
+                    <img src="@featured.ImageUrl" class="news-featured-img" alt="" loading="lazy" />
+                }
+                <div class="news-featured-overlay">
+                    <span class="news-source-pill">@featured.Source</span>
+                    <h3 class="news-featured-title">@featured.Title</h3>
+                    <span class="news-time">@RelativeTime(featured.Published)</span>
+                </div>
+            </a>
+
+            <div class="news-list">
+                @foreach (var n in _headlines.Skip(1).Take(_newsShown))
+                {
+                    <a class="news-row" href="@n.Link" target="_blank" rel="noopener">
+                        @if (!string.IsNullOrEmpty(n.ImageUrl))
+                        {
+                            <img src="@n.ImageUrl" class="news-row-img" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="news-row-img news-row-noimg">
+                                <MudIcon Icon="@Icons.Material.Filled.Newspaper" Style="opacity: 0.3;" />
+                            </div>
+                        }
+                        <div class="news-row-text">
+                            <p class="news-row-title">@n.Title</p>
+                            <p class="news-row-meta">@n.Source · @RelativeTime(n.Published)</p>
+                        </div>
+                    </a>
+                }
+            </div>
+            @if (_headlines.Count - 1 > _newsShown)
+            {
+                <div class="load-more-wrap">
+                    <button class="load-more-btn" @onclick="() => _newsShown += 10">More Headlines</button>
+                </div>
+            }
+        }
+    </section>
 
     @* ── Just Released ───────────────────────────────────────────────── *@
     <section class="home-section">
@@ -143,17 +209,25 @@
 </MudContainer>
 
 @code {
+    private List<NewsItem> _headlines = new();
     private List<RawgSearchResult> _recent = new();
     private List<RawgUpcomingGame> _upcoming = new();
     private List<RawgSearchResult> _trending = new();
+    private bool _loadingNews = true;
     private bool _loadingRecent = true;
     private bool _loadingUpcoming = true;
+    private int _newsShown = 6;
 
     protected override async Task OnInitializedAsync()
     {
+        var newsTask     = News.GetHeadlinesAsync();
         var recentTask   = RawgService.GetRecentReleasesAsync(15);
         var upcomingTask = RawgService.GetUpcomingGamesAsync(15);
         var trendingTask = RawgService.GetPopularGamesAsync(12);
+
+        _headlines = await newsTask;
+        _loadingNews = false;
+        StateHasChanged();
 
         _recent = await recentTask;
         _loadingRecent = false;
@@ -162,6 +236,16 @@
         _upcoming = await upcomingTask;
         _loadingUpcoming = false;
         _trending = await trendingTask;
+    }
+
+    private static string RelativeTime(DateTime? when)
+    {
+        if (when == null) return "";
+        var span = DateTime.UtcNow - when.Value;
+        if (span.TotalDays >= 2)  return $"{(int)span.TotalDays}d ago";
+        if (span.TotalHours >= 1) return $"{(int)span.TotalHours}h ago";
+        if (span.TotalMinutes >= 1) return $"{(int)span.TotalMinutes}m ago";
+        return "just now";
     }
 
     private static string FormatDate(string? iso) =>
