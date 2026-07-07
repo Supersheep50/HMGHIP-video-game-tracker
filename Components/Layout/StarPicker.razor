@@ -1,0 +1,33 @@
+@* Half-star rating input. Value is in score points /10 (1 unit = half a star). *@
+
+<div class="star-picker" role="radiogroup" aria-label="Rating">
+    @for (int i = 1; i <= 5; i++)
+    {
+        var left  = i * 2 - 1;
+        var right = i * 2;
+        var state = Value >= right ? "full" : Value == left ? "half" : "empty";
+        <span class="star-pick star-pick-@state">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <defs>
+                    <linearGradient id="half-@right">
+                        <stop offset="50%" stop-color="var(--star-on)" />
+                        <stop offset="50%" stop-color="var(--star-off)" />
+                    </linearGradient>
+                </defs>
+                <path fill="@(state == "full" ? "var(--star-on)" : state == "half" ? $"url(#half-{right})" : "var(--star-off)")"
+                      d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <button type="button" class="star-pick-zone star-pick-left" aria-label="@(left / 2.0) stars"
+                    @onclick="() => Set(left)"></button>
+            <button type="button" class="star-pick-zone star-pick-right" aria-label="@(right / 2.0) stars"
+                    @onclick="() => Set(right)"></button>
+        </span>
+    }
+</div>
+
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+
+    private Task Set(int v) => ValueChanged.InvokeAsync(Value == v ? 0 : v);
+}

@@ -111,6 +111,48 @@ namespace PlayedGames.Services
             catch { return new List<string?> { null, null, null }; }
         }
 
+        // ── Review upvotes + comments (on friend/own reviews) ─────────────────
+
+        public async Task<(HashSet<string> Upvotes, Dictionary<string, List<ReviewComment>> Comments)> GetReviewMetaAsync(string userId)
+        {
+            try
+            {
+                var result = await _js.InvokeAsync<JsonElement>("firestoreGetReviewMeta", userId);
+
+                var upvotes = new HashSet<string>();
+                if (result.TryGetProperty("upvotes", out var u) && u.ValueKind == JsonValueKind.Array)
+                    foreach (var s in u.EnumerateArray())
+                        if (s.ValueKind == JsonValueKind.String) upvotes.Add(s.GetString()!);
+
+                var comments = new Dictionary<string, List<ReviewComment>>();
+                if (result.TryGetProperty("comments", out var c) && c.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var prop in c.EnumerateObject())
+                    {
+                        if (prop.Value.ValueKind != JsonValueKind.Array) continue;
+                        var list = new List<ReviewComment>();
+                        foreach (var item in prop.Value.EnumerateArray())
+                        {
+                            var text = item.TryGetProperty("text", out var t) ? t.GetString() : null;
+                            if (string.IsNullOrWhiteSpace(text)) continue;
+                            var when = item.TryGetProperty("when", out var w) &&
+                                       DateTime.TryParse(w.GetString(), out var dt) ? dt : DateTime.Now;
+                            list.Add(new ReviewComment(text, when));
+                        }
+                        comments[prop.Name] = list;
+                    }
+                }
+                return (upvotes, comments);
+            }
+            catch { return (new(), new()); }
+        }
+
+        public async Task SaveReviewMetaAsync(string userId, IEnumerable<string> upvotes,
+            Dictionary<string, List<ReviewComment>> comments)
+        {
+            try { await _js.InvokeVoidAsync("firestoreSaveReviewMeta", userId, upvotes, comments); } catch { }
+        }
+
         // ── Profile ───────────────────────────────────────────────────────────
 
         public async Task SaveProfileAsync(string userId, string username)
@@ -175,6 +217,8 @@ namespace PlayedGames.Services
         public string? Email       { get; set; }
         public string? PhotoUrl    { get; set; }
     }
+
+    public record ReviewComment(string Text, DateTime When);
 
     public class UserProfile
     {

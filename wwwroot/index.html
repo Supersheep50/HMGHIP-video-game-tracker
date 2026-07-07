@@ -232,6 +232,13 @@
         window.haptic = (ms) => {
             if (navigator.vibrate) navigator.vibrate(ms ?? 30);
         };
+
+        // Escape key → let Blazor close whatever overlay is open
+        window.registerEscapeHandler = (dotnetRef) => {
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') dotnetRef.invokeMethodAsync('HandleEscape');
+            });
+        };
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
@@ -308,6 +315,18 @@
         window.firestoreGetProfile = async (userId) => {
             const snap = await getDoc(doc(db, 'users', userId));
             return snap.exists() ? snap.data() : null;
+        };
+
+        window.firestoreGetReviewMeta = async (userId) => {
+            const snap = await getDoc(doc(db, 'users', userId));
+            if (!snap.exists()) return { upvotes: [], comments: {} };
+            const d = snap.data();
+            return { upvotes: d.reviewUpvotes ?? [], comments: d.reviewComments ?? {} };
+        };
+
+        window.firestoreSaveReviewMeta = async (userId, upvotes, comments) => {
+            await setDoc(doc(db, 'users', userId),
+                { reviewUpvotes: upvotes, reviewComments: comments }, { merge: true });
         };
 
         window.firestoreGetXp = async (userId) => {

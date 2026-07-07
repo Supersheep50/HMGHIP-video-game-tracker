@@ -1,7 +1,9 @@
 @page "/top3"
+@implements IDisposable
 @inject RawgService RawgService
 @inject FirebaseService Firebase
 @inject AuthStateService AuthState
+@inject GameStateService GameState
 @inject XpService Xp
 
 <PageTitle>Top 3 — HMGHIP</PageTitle>
@@ -139,6 +141,19 @@
 
     protected override async Task OnInitializedAsync()
     {
+        GameState.OnEscape += OnEscape;
+        AuthState.OnChange += OnAuthChanged; // deep links: auth resolves after first render
+        await LoadAsync();
+    }
+
+    private async void OnAuthChanged()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadAsync()
+    {
         if (AuthState.CurrentUser == null) return;
 
         _library = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
@@ -205,6 +220,19 @@
     }
 
     private void ClosePicker() => _pickerOpen = false;
+
+    private void OnEscape()
+    {
+        if (!_pickerOpen) return;
+        _pickerOpen = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        GameState.OnEscape -= OnEscape;
+        AuthState.OnChange -= OnAuthChanged;
+    }
 
     private async Task SelectGame(PickEntry entry)
     {

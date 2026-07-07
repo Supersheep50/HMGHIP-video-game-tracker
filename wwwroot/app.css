@@ -4328,3 +4328,40 @@ html, body {
     align-self: center;
     margin-right: 0.25rem;
 }
+
+/* Half-star rating picker */
+.star-picker {
+    --star-on: #fbbf24;
+    --star-off: rgba(255, 255, 255, 0.18);
+    display: inline-flex;
+    gap: 0.15rem;
+}
+
+.star-pick {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    display: inline-block;
+}
+
+.star-pick svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    transition: transform 0.1s ease;
+}
+
+.star-pick:active svg { transform: scale(0.88); }
+
+.star-pick-zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+.star-pick-left  { left: 0; }
+.star-pick-right { right: 0; }

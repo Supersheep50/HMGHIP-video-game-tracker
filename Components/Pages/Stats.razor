@@ -177,6 +177,7 @@
     protected override async Task OnInitializedAsync()
     {
         GameState.OnChanged += OnGamesChanged;
+        AuthState.OnChange  += OnGamesChanged; // deep links: auth resolves after first render
         await LoadAsync();
     }
 
@@ -223,5 +224,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    public void Dispose() => GameState.OnChanged -= OnGamesChanged;
+    public void Dispose()
+    {
+        GameState.OnChanged -= OnGamesChanged;
+        AuthState.OnChange  -= OnGamesChanged;
+    }
 }

@@ -229,8 +229,8 @@
                     <div class="finished-field">
                         <label class="finished-label">Rating</label>
                         <div class="star-rating-row">
-                            <MudRating @bind-SelectedValue="_stars" MaxValue="5" Color="Color.Warning" />
-                            <span class="star-score-label">@(_stars * 2) / 10</span>
+                            <StarPicker @bind-Value="_stars" />
+                            <span class="star-score-label">@(_stars > 0 ? $"{_stars} / 10" : "—")</span>
                         </div>
                     </div>
 
@@ -266,8 +266,8 @@
                 <p class="popup-title">Write a Review</p>
                 <p class="popup-game-name">@_open.Name</p>
                 <div class="star-rating-row">
-                    <MudRating @bind-SelectedValue="_stars" MaxValue="5" Color="Color.Warning" />
-                    <span class="star-score-label">@(_stars * 2) / 10</span>
+                    <StarPicker @bind-Value="_stars" />
+                    <span class="star-score-label">@(_stars > 0 ? $"{_stars} / 10" : "—")</span>
                 </div>
                 <MudTextField @bind-Value="_reviewText" Label="Your thoughts..." Lines="4"
                               Variant="Variant.Outlined" Class="mb-4" FullWidth="true" />
@@ -380,7 +380,7 @@
         _existingReview = 0;
         _hours = 0;
         _platform = "";
-        _stars = 3;
+        _stars = 6;
         _reviewText = "";
 
         ClearSearch();
@@ -410,7 +410,7 @@
             _platform       = existing.System ?? "";
             _liked          = existing.Liked;
             _existingReview = existing.Review;
-            if (existing.Review > 0) _stars = (int)Math.Round(existing.Review / 2.0);
+            if (existing.Review > 0) _stars = Math.Clamp((int)Math.Round(existing.Review), 1, 10);
             _reviewText     = existing.ReviewText ?? "";
         }
         StateHasChanged();
@@ -525,7 +525,7 @@
         game.System       = string.IsNullOrWhiteSpace(_platform) ? null : _platform;
         game.Liked        = _liked;
         game.FinishedDate ??= DateTime.Now;
-        if (_stars > 0) game.Review = _stars * 2.0;
+        if (_stars > 0) game.Review = _stars;
         if (!string.IsNullOrWhiteSpace(_reviewText))
         {
             game.ReviewText = _reviewText;
@@ -558,7 +558,7 @@
 
         var games = await EnsureSavedAsync();
         var game = games.First(g => string.Equals(g.Name, _open.Name, StringComparison.OrdinalIgnoreCase));
-        game.Review     = _stars * 2.0;
+        game.Review     = _stars;
         game.ReviewText = _reviewText;
         game.ReviewDate = DateTime.Now;
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
@@ -572,7 +572,7 @@
         _mode = "actions";
         _saving = false;
         GameState.NotifyChanged();
-        Snackbar.Add($"Review saved — {_stars * 2}/10", Severity.Success);
+        Snackbar.Add($"Review saved — {_stars}/10", Severity.Success);
     }
 
     private static string FormatReleased(string iso)
@@ -584,10 +584,40 @@
 
     // ── Auth bootstrap ────────────────────────────────────────────────────
 
+    private DotNetObjectReference<MainLayout>? _selfRef;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             try { await JS.InvokeVoidAsync("_appReady"); } catch { }
+            try
+            {
+                _selfRef = DotNetObjectReference.Create(this);
+                await JS.InvokeVoidAsync("registerEscapeHandler", _selfRef);
+            }
+            catch { }
+        }
+    }
+
+    [JSInvokable]
+    public void HandleEscape()
+    {
+        if (_open != null)
+        {
+            // Step back out of a form first, then close entirely
+            if (_mode != "actions") _mode = "actions";
+            else CloseDetail();
+        }
+        else if (_results.Count > 0 || _searched)
+        {
+            ClearSearch();
+        }
+        else
+        {
+            GameState.NotifyEscape();
+        }
+        StateHasChanged();
     }
 
     private async void OnOpenGameRequested(string name, string? artUrl, string? genre, string mode)
@@ -600,6 +630,7 @@
     {
         GameState.OnOpenGameRequested -= OnOpenGameRequested;
         Xp.OnLevelUp -= HandleLevelUp;
+        _selfRef?.Dispose();
     }
 
     private void HandleLevelUp(XpLevel lvl)

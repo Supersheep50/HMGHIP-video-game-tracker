@@ -124,6 +124,7 @@
     protected override async Task OnInitializedAsync()
     {
         GameState.OnChanged += OnGamesChanged;
+        AuthState.OnChange  += OnGamesChanged; // deep links: auth resolves after first render
         await LoadAsync();
 
         // Friend reviews + art lookups
@@ -172,7 +173,11 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    public void Dispose() => GameState.OnChanged -= OnGamesChanged;
+    public void Dispose()
+    {
+        GameState.OnChanged -= OnGamesChanged;
+        AuthState.OnChange  -= OnGamesChanged;
+    }
 
     private static string RelativeTime(DateTime when)
     {

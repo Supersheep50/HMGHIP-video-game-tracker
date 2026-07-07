@@ -179,6 +179,7 @@
     {
         Xp.OnChanged += HandleXpChanged;
         GameState.OnChanged += HandleGamesChanged;
+        AuthState.OnChange  += HandleAuthChanged;
         await Xp.EnsureLoadedAsync();
         await LoadStatsAsync();
     }
@@ -220,9 +221,17 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private async void HandleAuthChanged()
+    {
+        await Xp.EnsureLoadedAsync();
+        await LoadStatsAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
     public void Dispose()
     {
         Xp.OnChanged -= HandleXpChanged;
         GameState.OnChanged -= HandleGamesChanged;
+        AuthState.OnChange  -= HandleAuthChanged;
     }
 }

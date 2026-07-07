@@ -320,8 +320,8 @@
                             <div class="review-comment-item">
                                 <span class="review-avatar review-avatar-self">YOU</span>
                                 <div>
-                                    <div class="review-comment-when">just now</div>
-                                    <div class="review-comment-body">@c</div>
+                                    <div class="review-comment-when">@RelativeTime(c.When)</div>
+                                    <div class="review-comment-body">@c.Text</div>
                                 </div>
                             </div>
                         }
@@ -384,6 +384,7 @@
     protected override async Task OnInitializedAsync()
     {
         GameState.OnChanged += OnGamesChanged;
+        GameState.OnEscape  += OnEscape;
         AuthState.OnChange  += OnAuthChanged;
 
         // Kick off RAWG popular + upcoming games in parallel
@@ -416,6 +417,7 @@
         if (AuthState.CurrentUser == null) return;
 
         _allUserGames = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
+        (_upvoteKeys, _commentsByKey) = await Firebase.GetReviewMetaAsync(AuthState.CurrentUser.Uid);
 
         _playing.Clear();
         _finished.Clear();
@@ -512,42 +514,75 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private void OnEscape()
+    {
+        if (_openReview == null) return;
+        _openReview = null;
+        InvokeAsync(StateHasChanged);
+    }
+
     public void Dispose()
     {
         GameState.OnChanged -= OnGamesChanged;
+        GameState.OnEscape  -= OnEscape;
         AuthState.OnChange  -= OnAuthChanged;
     }
 
-    // ── Expanded review modal state (UI only, not persisted) ─────────────
+    // ── Expanded review modal (upvotes + comments persist per user) ──────
     private ReviewItem? _openReview;
     private bool       _reviewUpvoted;
     private int        _reviewUpvoteCount;
     private string     _reviewComment = "";
-    private List<string> _reviewComments = new();
+    private List<ReviewComment> _reviewComments = new();
+
+    private HashSet<string> _upvoteKeys = new();
+    private Dictionary<string, List<ReviewComment>> _commentsByKey = new();
+
+    // Stable key per review; strips chars Firestore map fields can't take
+    private static string ReviewKey(ReviewItem r)
+    {
+        var raw = $"{r.Friend?.Name ?? "you"}|{r.GameName}";
+        foreach (var ch in ".~*/[]") raw = raw.Replace(ch, '_');
+        return raw;
+    }
 
     private void OpenReview(ReviewItem r)
     {
+        var key = ReviewKey(r);
         _openReview        = r;
-        _reviewUpvoted     = false;
-        _reviewUpvoteCount = new Random(r.GameName.GetHashCode()).Next(3, 47);
+        _reviewUpvoted     = _upvoteKeys.Contains(key);
+        _reviewUpvoteCount = 3 + r.GameName.Sum(ch => ch) % 44 + (_reviewUpvoted ? 1 : 0);
         _reviewComment     = "";
-        _reviewComments    = new();
+        _reviewComments    = _commentsByKey.TryGetValue(key, out var list)
+            ? new List<ReviewComment>(list) : new();
     }
 
     private void CloseReview() => _openReview = null;
 
-    private void ToggleUpvote()
+    private async Task ToggleUpvote()
     {
+        if (_openReview == null) return;
+        var key = ReviewKey(_openReview);
         _reviewUpvoted = !_reviewUpvoted;
         _reviewUpvoteCount += _reviewUpvoted ? 1 : -1;
+        if (_reviewUpvoted) _upvoteKeys.Add(key); else _upvoteKeys.Remove(key);
+        await SaveReviewMetaAsync();
     }
 
-    private void PostComment()
+    private async Task PostComment()
     {
-        if (string.IsNullOrWhiteSpace(_reviewComment)) return;
-        _reviewComments.Insert(0, _reviewComment.Trim());
+        if (_openReview == null || string.IsNullOrWhiteSpace(_reviewComment)) return;
+        var key = ReviewKey(_openReview);
+        _reviewComments.Insert(0, new ReviewComment(_reviewComment.Trim(), DateTime.Now));
+        _commentsByKey[key] = new List<ReviewComment>(_reviewComments);
         _reviewComment = "";
+        await SaveReviewMetaAsync();
     }
+
+    private Task SaveReviewMetaAsync() =>
+        AuthState.CurrentUser == null
+            ? Task.CompletedTask
+            : Firebase.SaveReviewMetaAsync(AuthState.CurrentUser.Uid, _upvoteKeys, _commentsByKey);
 
     private static string FormatRelease(string? iso)
     {

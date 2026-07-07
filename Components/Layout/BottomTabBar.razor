@@ -1,5 +1,7 @@
+@implements IDisposable
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject GameStateService GameState
 
 <nav class="bottom-tab-bar">
     <a href="" class="tab-item @IsActive("/", exact: true)">
@@ -106,6 +108,17 @@
 
 @code {
     private bool _open;
+
+    protected override void OnInitialized() => GameState.OnEscape += OnEscape;
+
+    private void OnEscape()
+    {
+        if (!_open) return;
+        _open = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => GameState.OnEscape -= OnEscape;
 
     private async Task ToggleMenu()
     {
