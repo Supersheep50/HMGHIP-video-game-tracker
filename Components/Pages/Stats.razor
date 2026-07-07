@@ -1,0 +1,227 @@
+@page "/stats"
+@implements IDisposable
+@inject FirebaseService Firebase
+@inject AuthStateService AuthState
+@inject GameStateService GameState
+
+<PageTitle>Year in Review — HMGHIP</PageTitle>
+
+<div class="hero-header library-hero">
+    <div class="hero-inner">
+        <div class="hero-title-section anim-fade-up">
+            <div class="year-badge">@_year</div>
+            <p class="hero-title">Year in Review</p>
+            <p class="hero-subtitle">Your @_year in games, by the numbers</p>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-card anim-fade-up anim-delay-2">
+                <span class="stat-number">@_yearGames.Count</span>
+                <span class="stat-label">Finished</span>
+            </div>
+            <div class="stat-card anim-fade-up anim-delay-3">
+                <span class="stat-number">@_yearGames.Sum(g => g.HoursPlayed).ToString("N0")</span>
+                <span class="stat-label">Hours</span>
+            </div>
+            <div class="stat-card anim-fade-up anim-delay-4">
+                <span class="stat-number">@(_rated.Any() ? _rated.Average(g => g.Review).ToString("F1") : "—")</span>
+                <span class="stat-label">Avg Score</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="library-container">
+
+    @if (AuthState.CurrentUser == null)
+    {
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Filled.Lock" Style="font-size: 4rem; opacity: 0.3;" />
+            <MudText Typo="Typo.h6" Class="mt-3">Sign in to see your Year in Review</MudText>
+        </div>
+    }
+    else if (!_yearGames.Any())
+    {
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Filled.Insights" Style="font-size: 4rem; opacity: 0.3;" />
+            <MudText Typo="Typo.h6" Class="mt-3">Nothing logged for @_year yet</MudText>
+            <MudText Typo="Typo.body2">Mark a game as Finished and it lands here</MudText>
+        </div>
+    }
+    else
+    {
+        <section class="home-section">
+            <div class="section-head">
+                <h2 class="section-title">Games Per Month</h2>
+                <span class="section-subtitle">When you rolled credits</span>
+            </div>
+            <div class="month-chart">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    var count = _byMonth[m - 1];
+                    var pct = _maxMonth > 0 ? count * 100 / _maxMonth : 0;
+                    <div class="month-col">
+                        <span class="month-count">@(count > 0 ? count.ToString() : "")</span>
+                        <div class="month-bar-track">
+                            <div class="month-bar-fill @(count > 0 ? "" : "month-bar-zero")" style="height:@Math.Max(pct, count > 0 ? 8 : 0)%"></div>
+                        </div>
+                        <span class="month-label">@MonthNames[m - 1]</span>
+                    </div>
+                }
+            </div>
+        </section>
+
+        @if (_topRated.Any())
+        {
+            <section class="home-section">
+                <div class="section-head">
+                    <h2 class="section-title">Highest Rated</h2>
+                    <span class="section-subtitle">Your favorites of @_year</span>
+                </div>
+                <div class="year-top-list">
+                    @{ int rank = 1; }
+                    @foreach (var g in _topRated)
+                    {
+                        <div class="year-top-row clickable-tile" @onclick="() => GameState.RequestOpenGame(g.Name!, g.GameArtUrl, g.Genre)">
+                            <span class="year-top-rank">@(rank++)</span>
+                            <div class="year-top-art" style="@(g.GameArtUrl != null ? $"background-image:url('{g.GameArtUrl}')" : $"background:{GameVisuals.Gradient(g.Genre)}")"></div>
+                            <div class="year-top-info">
+                                <span class="year-top-name">@g.Name</span>
+                                <span class="year-top-meta">@(g.Genre ?? "Game")@(g.HoursPlayed > 0 ? $" · {g.HoursPlayed} hrs" : "")</span>
+                            </div>
+                            @if (g.Liked)
+                            {
+                                <span class="card-liked-heart" title="Liked">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                </span>
+                            }
+                            <span class="review-score-pill @GameVisuals.RatingClass(g.Review)">
+                                @g.Review.ToString("F1")<span class="review-score-sub">/10</span>
+                            </span>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        <div class="year-breakdowns">
+            @if (_genres.Any())
+            {
+                <div class="year-breakdown-card">
+                    <div class="profile-genres-title">Genres</div>
+                    @foreach (var (name, count) in _genres)
+                    {
+                        <div class="profile-genre-row">
+                            <span class="profile-genre-name">@name</span>
+                            <div class="profile-genre-track">
+                                <div class="profile-genre-fill" style="width:@(count * 100 / _genres[0].Count)%; background:@GameVisuals.Gradient(name)"></div>
+                            </div>
+                            <span class="profile-genre-count">@count</span>
+                        </div>
+                    }
+                </div>
+            }
+            @if (_platforms.Any())
+            {
+                <div class="year-breakdown-card">
+                    <div class="profile-genres-title">Platforms</div>
+                    @foreach (var (name, count) in _platforms)
+                    {
+                        <div class="profile-genre-row">
+                            <span class="profile-genre-name">@name</span>
+                            <div class="profile-genre-track">
+                                <div class="profile-genre-fill" style="width:@(count * 100 / _platforms[0].Count)%; background:linear-gradient(90deg, #7c3aed, #a78bfa)"></div>
+                            </div>
+                            <span class="profile-genre-count">@count</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (_longest != null)
+        {
+            <div class="year-fact-row">
+                <div class="year-fact-card">
+                    <span class="year-fact-label">Biggest Time Sink</span>
+                    <span class="year-fact-value">@_longest.Name</span>
+                    <span class="year-fact-sub">@_longest.HoursPlayed.ToString("N0") hours</span>
+                </div>
+                @if (_liked > 0)
+                {
+                    <div class="year-fact-card">
+                        <span class="year-fact-label">Games Liked</span>
+                        <span class="year-fact-value">@_liked ❤</span>
+                        <span class="year-fact-sub">out of @_yearGames.Count finished</span>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+</MudContainer>
+
+@code {
+    private static readonly string[] MonthNames = { "J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D" };
+
+    private readonly int _year = DateTime.Now.Year;
+    private List<Games> _yearGames = new();
+    private List<Games> _rated = new();
+    private List<Games> _topRated = new();
+    private readonly int[] _byMonth = new int[12];
+    private int _maxMonth;
+    private int _liked;
+    private Games? _longest;
+    private List<(string Name, int Count)> _genres = new();
+    private List<(string Name, int Count)> _platforms = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        GameState.OnChanged += OnGamesChanged;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (AuthState.CurrentUser == null) return;
+
+        var games = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
+        var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
+        var finished = statuses.Where(s => s.Value == "finished").Select(s => s.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Same "counts for this year" rule as Home: finished status, or legacy entries with logged hours
+        _yearGames = games
+            .Where(g => g.Name != null &&
+                        (g.FinishedDate ?? g.DiaryDate).Year == _year &&
+                        (finished.Contains(g.Name) || g.HoursPlayed > 0))
+            .ToList();
+
+        _rated    = _yearGames.Where(g => g.Review > 0).ToList();
+        _topRated = _rated.OrderByDescending(g => g.Review).ThenByDescending(g => g.HoursPlayed).Take(5).ToList();
+        _liked    = _yearGames.Count(g => g.Liked);
+        _longest  = _yearGames.Where(g => g.HoursPlayed > 0).MaxBy(g => g.HoursPlayed);
+
+        Array.Clear(_byMonth);
+        foreach (var g in _yearGames)
+            _byMonth[(g.FinishedDate ?? g.DiaryDate).Month - 1]++;
+        _maxMonth = _byMonth.Max();
+
+        _genres = _yearGames
+            .Where(g => !string.IsNullOrWhiteSpace(g.Genre))
+            .GroupBy(g => g.Genre!).Select(gr => (gr.Key, gr.Count()))
+            .OrderByDescending(t => t.Item2).Take(5).ToList();
+
+        _platforms = _yearGames
+            .Where(g => !string.IsNullOrWhiteSpace(g.System))
+            .GroupBy(g => g.System!).Select(gr => (gr.Key, gr.Count()))
+            .OrderByDescending(t => t.Item2).Take(5).ToList();
+    }
+
+    private async void OnGamesChanged()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => GameState.OnChanged -= OnGamesChanged;
+}

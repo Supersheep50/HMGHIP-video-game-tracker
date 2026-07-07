@@ -165,6 +165,14 @@
                 </button>
             </div>
 
+            <div class="status-filter-row library-sort-row">
+                <span class="library-sort-label">Sort</span>
+                <button class="status-filter-chip @(_sort == "rating" ? "chip-active" : "")" @onclick='() => _sort = "rating"'>Rating</button>
+                <button class="status-filter-chip @(_sort == "recent" ? "chip-active" : "")" @onclick='() => _sort = "recent"'>Recent</button>
+                <button class="status-filter-chip @(_sort == "hours" ? "chip-active" : "")" @onclick='() => _sort = "hours"'>Hours</button>
+                <button class="status-filter-chip @(_sort == "name" ? "chip-active" : "")" @onclick='() => _sort = "name"'>A–Z</button>
+            </div>
+
             @if (!FilteredGames.Any())
             {
                 <div class="empty-state">
@@ -175,7 +183,7 @@
             }
             <MudGrid Spacing="3">
                 @{ int cardIdx = 0; }
-                @foreach (var game in FilteredGames.OrderByDescending(g => g.Review).ThenBy(g => g.Name))
+                @foreach (var game in SortedGames)
                 {
                     var delay = $"animation-delay:{cardIdx * 0.07}s";
                     cardIdx++;
@@ -337,6 +345,15 @@
     // ── Status filter ─────────────────────────────────────────────────────
 
     private string _filter = "all";
+    private string _sort = "rating";
+
+    private IEnumerable<Games> SortedGames => _sort switch
+    {
+        "recent" => FilteredGames.OrderByDescending(g => g.DiaryDate).ThenBy(g => g.Name),
+        "hours"  => FilteredGames.OrderByDescending(g => g.HoursPlayed).ThenBy(g => g.Name),
+        "name"   => FilteredGames.OrderBy(g => g.Name),
+        _        => FilteredGames.OrderByDescending(g => g.Review).ThenBy(g => g.Name),
+    };
 
     private IEnumerable<Games> FilteredGames => _filter switch
     {

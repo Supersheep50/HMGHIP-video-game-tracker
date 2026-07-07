@@ -138,6 +138,24 @@
         </div>
     }
 
+    @if (_top3.Any())
+    {
+        <div class="profile-stats-card anim-fade-up">
+            <h2 class="profile-stats-title">My Top 3</h2>
+            <div class="profile-top3-row">
+                @{ int rank = 1; }
+                @foreach (var t in _top3)
+                {
+                    <a href="top3" class="profile-top3-tile"
+                       style="@(t.ArtUrl != null ? $"background-image:url('{t.ArtUrl}')" : $"background:{GameVisuals.Gradient(t.Genre)}")">
+                        <span class="profile-top3-badge">#@(rank++)</span>
+                        <span class="profile-top3-name">@t.Name</span>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
     <div class="profile-actions anim-fade-up">
         @if (AuthState.IsAuthenticated && !AuthState.IsGuest)
         {
@@ -155,6 +173,7 @@
     private List<Games> _games = new();
     private int _finishedCount;
     private List<(string Genre, int Count)> _topGenres = new();
+    private List<(string Name, string? ArtUrl, string? Genre)> _top3 = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -180,6 +199,16 @@
             .Select(gr => (gr.Key, gr.Count()))
             .OrderByDescending(t => t.Item2)
             .Take(3)
+            .ToList();
+
+        var top3 = await Firebase.GetTop3Async(AuthState.CurrentUser.Uid);
+        _top3 = top3
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Select(n =>
+            {
+                var g = _games.FirstOrDefault(x => string.Equals(x.Name, n, StringComparison.OrdinalIgnoreCase));
+                return (n!, g?.GameArtUrl, g?.Genre);
+            })
             .ToList();
     }
 
