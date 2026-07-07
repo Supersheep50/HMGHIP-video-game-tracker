@@ -40,12 +40,14 @@
 
     @if (!string.IsNullOrWhiteSpace(_query) && !_searching && _results.Count == 0 && _searched)
     {
+        <div class="global-search-backdrop" @onclick="ClearSearch"></div>
         <div class="global-search-results">
             <div class="global-search-empty">No games found for "@_query"</div>
         </div>
     }
     else if (_results.Count > 0)
     {
+        <div class="global-search-backdrop" @onclick="ClearSearch"></div>
         <div class="global-search-results">
             @foreach (var r in _results)
             {
@@ -382,6 +384,8 @@
         _reviewText = "";
 
         ClearSearch();
+        // Show the popup immediately — Firestore/RAWG lookups fill it in as they land
+        StateHasChanged();
 
         // Fetch RAWG details in the background — doesn't block opening
         _ = LoadDetailAsync(r.Name);
@@ -517,11 +521,16 @@
 
         var games = await EnsureSavedAsync();
         var game = games.First(g => string.Equals(g.Name, _open.Name, StringComparison.OrdinalIgnoreCase));
-        game.HoursPlayed = _hours;
-        game.System      = string.IsNullOrWhiteSpace(_platform) ? null : _platform;
-        game.Liked       = _liked;
+        game.HoursPlayed  = _hours;
+        game.System       = string.IsNullOrWhiteSpace(_platform) ? null : _platform;
+        game.Liked        = _liked;
+        game.FinishedDate ??= DateTime.Now;
         if (_stars > 0) game.Review = _stars * 2.0;
-        if (!string.IsNullOrWhiteSpace(_reviewText)) game.ReviewText = _reviewText;
+        if (!string.IsNullOrWhiteSpace(_reviewText))
+        {
+            game.ReviewText = _reviewText;
+            game.ReviewDate ??= DateTime.Now;
+        }
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
         await Firebase.SaveGameStatusAsync(AuthState.CurrentUser.Uid, _open.Name, "finished");
 
@@ -539,6 +548,7 @@
         _mode = "actions";
         _saving = false;
         GameState.NotifyChanged();
+        Snackbar.Add($"{_open.Name} logged as finished", Severity.Success);
     }
 
     private async Task SaveReview()
@@ -550,6 +560,7 @@
         var game = games.First(g => string.Equals(g.Name, _open.Name, StringComparison.OrdinalIgnoreCase));
         game.Review     = _stars * 2.0;
         game.ReviewText = _reviewText;
+        game.ReviewDate = DateTime.Now;
         await Firebase.SaveGamesAsync(AuthState.CurrentUser.Uid, games);
 
         await Xp.AwardAsync(XpAction.Added, _open.Name);
@@ -561,6 +572,7 @@
         _mode = "actions";
         _saving = false;
         GameState.NotifyChanged();
+        Snackbar.Add($"Review saved — {_stars * 2}/10", Severity.Success);
     }
 
     private static string FormatReleased(string iso)
@@ -580,7 +592,8 @@
 
     private async void OnOpenGameRequested(string name, string? artUrl, string? genre, string mode)
     {
-        await OpenGame(new RawgSearchResult(name, artUrl, genre), mode);
+        // Raised from other components' render contexts — marshal onto ours
+        await InvokeAsync(() => OpenGame(new RawgSearchResult(name, artUrl, genre), mode));
     }
 
     public void Dispose()

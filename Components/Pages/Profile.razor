@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject AuthStateService AuthState
 @inject FirebaseService Firebase
+@inject GameStateService GameState
 @inject XpService Xp
 @inject NavigationManager Nav
 
@@ -27,6 +28,10 @@
                 }
             </div>
             <h1 class="profile-display-name">@AuthState.CurrentUser.DisplayName</h1>
+            @if (!string.IsNullOrWhiteSpace(_username))
+            {
+                <p class="profile-username">@("@" + _username)</p>
+            }
             <p class="profile-email">@AuthState.CurrentUser.Email</p>
         </div>
     }
@@ -102,6 +107,37 @@
         </div>
     }
 
+    @if (AuthState.CurrentUser != null && _games.Any())
+    {
+        <div class="profile-stats-card anim-fade-up">
+            <h2 class="profile-stats-title">Your Gaming Life</h2>
+            <div class="profile-stats-grid">
+                <div class="profile-stat"><span class="profile-stat-num">@_games.Count</span><span class="profile-stat-label">Games</span></div>
+                <div class="profile-stat"><span class="profile-stat-num">@_finishedCount</span><span class="profile-stat-label">Finished</span></div>
+                <div class="profile-stat"><span class="profile-stat-num">@_games.Sum(g => g.HoursPlayed).ToString("N0")</span><span class="profile-stat-label">Hours</span></div>
+                <div class="profile-stat"><span class="profile-stat-num">@_games.Count(g => g.Review > 0)</span><span class="profile-stat-label">Rated</span></div>
+                <div class="profile-stat"><span class="profile-stat-num">@(_games.Any(g => g.Review > 0) ? _games.Where(g => g.Review > 0).Average(g => g.Review).ToString("F1") : "—")</span><span class="profile-stat-label">Avg Score</span></div>
+                <div class="profile-stat"><span class="profile-stat-num">@_games.Count(g => g.Liked)</span><span class="profile-stat-label">Liked</span></div>
+            </div>
+            @if (_topGenres.Any())
+            {
+                <div class="profile-genres">
+                    <div class="profile-genres-title">Top Genres</div>
+                    @foreach (var (genre, count) in _topGenres)
+                    {
+                        <div class="profile-genre-row">
+                            <span class="profile-genre-name">@genre</span>
+                            <div class="profile-genre-track">
+                                <div class="profile-genre-fill" style="width:@(count * 100 / _topGenres[0].Count)%; background:@GameVisuals.Gradient(genre)"></div>
+                            </div>
+                            <span class="profile-genre-count">@count</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
     <div class="profile-actions anim-fade-up">
         @if (AuthState.IsAuthenticated && !AuthState.IsGuest)
         {
@@ -115,13 +151,49 @@
 </div>
 
 @code {
+    private string? _username;
+    private List<Games> _games = new();
+    private int _finishedCount;
+    private List<(string Genre, int Count)> _topGenres = new();
+
     protected override async Task OnInitializedAsync()
     {
         Xp.OnChanged += HandleXpChanged;
+        GameState.OnChanged += HandleGamesChanged;
         await Xp.EnsureLoadedAsync();
+        await LoadStatsAsync();
+    }
+
+    private async Task LoadStatsAsync()
+    {
+        if (AuthState.CurrentUser == null) return;
+
+        var profileTask = Firebase.GetProfileAsync(AuthState.CurrentUser.Uid);
+        _games = await Firebase.GetGamesAsync(AuthState.CurrentUser.Uid);
+        var statuses = await Firebase.GetGameStatusesAsync(AuthState.CurrentUser.Uid);
+        _finishedCount = statuses.Count(s => s.Value == "finished");
+        _username = (await profileTask)?.Username;
+
+        _topGenres = _games
+            .Where(g => !string.IsNullOrWhiteSpace(g.Genre))
+            .GroupBy(g => g.Genre!)
+            .Select(gr => (gr.Key, gr.Count()))
+            .OrderByDescending(t => t.Item2)
+            .Take(3)
+            .ToList();
     }
 
     private void HandleXpChanged() => InvokeAsync(StateHasChanged);
 
-    public void Dispose() => Xp.OnChanged -= HandleXpChanged;
+    private async void HandleGamesChanged()
+    {
+        await LoadStatsAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Xp.OnChanged -= HandleXpChanged;
+        GameState.OnChanged -= HandleGamesChanged;
+    }
 }
